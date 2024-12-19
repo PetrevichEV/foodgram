@@ -1,11 +1,9 @@
 from django.db import models
-from django.core.validators import MaxValueValidator, MinValueValidator
 
-from user.models import User
-from api.constants import (LENGTH_TEXT, MAX_LENGTH, MAX_SLUG,
-                           MIN_VALUE, MAX_VALUE)
-from .validators import validate_year, validate_slug
+from django.contrib.auth import get_user_model
+from api.constants import (MAX_LENGTH)
 
+User = get_user_model()
 
 class Tag(models.Model):
     name = models.CharField(
@@ -65,7 +63,6 @@ class Recipe(models.Model):
     )
     tags = models.ManyToManyField(
         Tag,
-        through='TagRecipe',
         verbose_name='Теги'
     )
     image = models.ImageField(
