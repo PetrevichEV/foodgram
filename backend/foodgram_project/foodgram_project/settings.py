@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -8,7 +9,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1:8000', '127.0.0.1']
 
-
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 5000
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -99,7 +100,8 @@ AUTH_USER_MODEL = 'users.User'
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = '/static_backend/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static_backend')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
