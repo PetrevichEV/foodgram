@@ -8,7 +8,7 @@ from rest_framework import viewsets
 #     Tag, Ingred, Recipe, Favourites, ShoppingList)
 # from users.models import User, Follow
 
-# from .permissions import IsOwnerOrReadOnly
+# from .permissions import IsOwnerOrReadOnlypip list
 # from .serializers import ()
 
 
