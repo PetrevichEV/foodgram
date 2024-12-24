@@ -4,22 +4,25 @@ from rest_framework import viewsets
 # from rest_framework.filters import SearchFilter
 # from rest_framework.pagination import LimitOffsetPagination
 
+from food_recipes.models import Recipe
 # from food_recipes.models import (
-#     Tag, Ingred, Recipe, Favourites, ShoppingList)
+#     Tag, Ingredient, Recipe, Favourites, ShoppingList)
 # from users.models import User, Follow
 
 # from .permissions import IsOwnerOrReadOnlypip list
-# from .serializers import ()
+from .serializers import RecipeSerializer
 
 
 class TagViewSet(viewsets.ModelViewSet):
     pass
 
 class IngredientViewSet(viewsets.ModelViewSet):
-    pass
+    queryset = Recipe.objects.all()
+    serializer_class = RecipeSerializer
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    pass
+    queryset = Recipe.objects.all()
+    serializer_class = RecipeSerializer
 
 class FavouritesViewSet(viewsets.ModelViewSet):
     pass

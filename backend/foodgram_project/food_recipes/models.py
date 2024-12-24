@@ -82,16 +82,20 @@ class IngredientForRecipe(models.Model):
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
-        related_name='ingredient_for_recipe'
-    )
-    amount = models.IntegerField(
-        verbose_name='Количество'
+        verbose_name='Ингредиент'
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='ingredient_for_recipe'
+        verbose_name='Рецепт'
     )
+    amount = models.IntegerField(
+        verbose_name='Количество'
+    )
+
+    class Meta:
+        verbose_name = 'Ингредиенты рецепта'
+        verbose_name_plural = 'Ингредиенты рецептов'
 
     def __str__(self) -> str:
         return f'{self.recipe},{self.ingredient}'
