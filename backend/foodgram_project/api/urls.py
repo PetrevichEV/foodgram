@@ -8,8 +8,8 @@ from .views import (
     FavouritesViewSet,
     ShoppingListViewSet,
     UserViewSet,
-    FollowViewSet,
-    FollowListViewSet
+    SubscriptionViewSet,
+    SubscriptionListViewSet
 )
 
 router = DefaultRouter()
@@ -27,14 +27,14 @@ router.register(
     ShoppingListViewSet,
     basename='shopping'
 )
-router.register('users', UserViewSet, basename='users')
+# router.register('users', UserViewSet, basename='users')
 router.register(
     'users/subscriptions/',
-    FollowListViewSet,
+    SubscriptionListViewSet,
     basename='subscriptions'),
 router.register(
     r'users/(?P<id>\d+)/subscribe',
-    FollowViewSet,
+    SubscriptionViewSet,
     basename='subscribe'
 )
 

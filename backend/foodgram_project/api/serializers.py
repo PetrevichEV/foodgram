@@ -1,8 +1,5 @@
 from rest_framework import serializers
 
-# from food_recipes.models import (
-#     Tag, Ingredient, Recipe, Favourites, ShoppingList)
-# from users.models import User, Follow
 
 from food_recipes.models import Recipe, Ingredient, IngredientForRecipe
 

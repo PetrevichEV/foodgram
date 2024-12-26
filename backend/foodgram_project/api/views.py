@@ -1,40 +1,43 @@
-from rest_framework import viewsets
-# from rest_framework.generics import get_object_or_404
-# from rest_framework.permissions import IsAuthenticated
-# from rest_framework.filters import SearchFilter
-# from rest_framework.pagination import LimitOffsetPagination
+from rest_framework import viewsets, permissions
+from djoser.views import UserViewSet as DjoserUserViewSet
+from djoser.serializers import SetPasswordSerializer
+from .permissions import IsOwnerOrReadOnly
 
-from food_recipes.models import Recipe
-# from food_recipes.models import (
-#     Tag, Ingredient, Recipe, Favourites, ShoppingList)
-# from users.models import User, Follow
+from food_recipes.models import Recipe, Ingredient
 
-# from .permissions import IsOwnerOrReadOnlypip list
-from .serializers import RecipeSerializer
+
+from .serializers import RecipeSerializer, IngredientSerializer
 
 
 class TagViewSet(viewsets.ModelViewSet):
     pass
 
+
 class IngredientViewSet(viewsets.ModelViewSet):
-    queryset = Recipe.objects.all()
-    serializer_class = RecipeSerializer
+    queryset = Ingredient.objects.all()
+    serializer_class = IngredientSerializer
+
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
 
+
 class FavouritesViewSet(viewsets.ModelViewSet):
     pass
+
 
 class ShoppingListViewSet(viewsets.ModelViewSet):
     pass
 
+
 class UserViewSet(viewsets.ModelViewSet):
     pass
 
-class FollowViewSet(viewsets.ModelViewSet):
+
+class SubscriptionViewSet(viewsets.ModelViewSet):
     pass
 
-class FollowListViewSet(viewsets.ModelViewSet):
+
+class SubscriptionListViewSet(viewsets.ModelViewSet):
     pass
