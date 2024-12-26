@@ -5,14 +5,16 @@ from djoser.serializers import SetPasswordSerializer
 from .permissions import IsOwnerOrReadOnly
 
 
-from food_recipes.models import Recipe, Ingredient
+from food_recipes.models import Recipe, Ingredient, Tag
 
 
-from .serializers import RecipeSerializer, IngredientSerializer
+from .serializers import RecipeSerializer, IngredientSerializer, TagSerializer
 
 
-class TagViewSet(viewsets.ModelViewSet):
-    pass
+class TagViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+    permission_classes = (permissions.AllowAny,)    
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
