@@ -30,7 +30,7 @@ class User(AbstractUser):
         blank=True,
         null=True,
         default=None,
-        upload_to='/images/'
+        upload_to='avatars'
     )
 
     class Meta:

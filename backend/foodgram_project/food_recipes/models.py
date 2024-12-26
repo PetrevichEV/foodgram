@@ -1,19 +1,21 @@
 from django.db import models
 
 from django.contrib.auth import get_user_model
-from api.constants import (MAX_LENGTH)
+
+from .validators import validate_slug
 
 User = get_user_model()
 
 class Tag(models.Model):
     name = models.CharField(
-        max_length=MAX_LENGTH,
+        max_length=32,
         verbose_name='Название',
     )
     slug = models.SlugField(
         unique=True,
-        max_length=MAX_LENGTH,
-        verbose_name='Слаг'
+        max_length=32,
+        verbose_name='Слаг',
+        validators=(validate_slug,)        
     )
 
     class Meta:
@@ -23,11 +25,11 @@ class Tag(models.Model):
 
 class Ingredient(models.Model):
     name = models.CharField(
-        max_length=MAX_LENGTH,
+        max_length=128,
         verbose_name='Название'
     )
     measurement_unit = models.CharField(
-        max_length=MAX_LENGTH,
+        max_length=64,
         verbose_name='Единица измерения'
     )
 
@@ -47,7 +49,7 @@ class Recipe(models.Model):
         verbose_name='Автор'
     )
     name = models.CharField(
-        max_length=MAX_LENGTH,
+        max_length=256,
         verbose_name='Название'
     )
     text = models.TextField(
