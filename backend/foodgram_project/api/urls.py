@@ -14,9 +14,9 @@ from .views import (
 
 router = DefaultRouter()
 
-router.register('tags', TagViewSet, basename='tags')
-router.register('recipes', RecipeViewSet, basename='recipes')
-router.register('ingredients', IngredientViewSet, basename='ingredients')
+router.register(r'tags', TagViewSet, basename='tags')
+router.register(r'recipes', RecipeViewSet, basename='recipes')
+router.register(r'ingredients', IngredientViewSet, basename='ingredients')
 router.register(
     r'recipes/(?P<id>\d+)/favorite',
     FavouritesViewSet,
@@ -27,9 +27,9 @@ router.register(
     ShoppingListViewSet,
     basename='shopping'
 )
-# router.register('users', UserViewSet, basename='users')
+router.register(r'users', UserViewSet, basename='users')
 router.register(
-    'users/subscriptions/',
+    'users/subscriptions',
     SubscriptionListViewSet,
     basename='subscriptions'),
 router.register(
@@ -40,6 +40,6 @@ router.register(
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('', include('djoser.urls')),
+    # path('', include('djoser.urls')),
     path('auth/', include('djoser.urls.authtoken')),
 ]
