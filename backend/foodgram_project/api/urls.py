@@ -7,10 +7,11 @@ from .views import (
     RecipeViewSet,
     FavouritesViewSet,
     ShoppingListViewSet,
-    UserViewSet,
+    MeUserViewSet,
     SubscriptionViewSet,
     SubscriptionListViewSet
 )
+app_name = 'api'
 
 router = DefaultRouter()
 
@@ -27,7 +28,7 @@ router.register(
     ShoppingListViewSet,
     basename='shopping'
 )
-router.register(r'users', UserViewSet, basename='users')
+router.register(r'users', MeUserViewSet, basename='users')
 router.register(
     'users/subscriptions',
     SubscriptionListViewSet,
@@ -40,6 +41,6 @@ router.register(
 
 urlpatterns = [
     path('', include(router.urls)),
-    # path('', include('djoser.urls')),
+    path('', include('djoser.urls')),
     path('auth/', include('djoser.urls.authtoken')),
 ]

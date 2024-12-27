@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from djoser.serializers import UserSerializer as DjoserUserSerializer
 
 
 from food_recipes.models import Recipe, Ingredient, IngredientForRecipe, Tag
@@ -9,7 +10,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = '__all__'
+        fields = ('email', 'username', 'first_name', 'last_name', 'password')
 
 class AvatarSerializer(serializers.ModelSerializer):
 

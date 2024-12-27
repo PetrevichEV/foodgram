@@ -3,35 +3,26 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from .serializers import RecipeSerializer, IngredientSerializer, TagSerializer, UserSerializer, AvatarSerializer
 from food_recipes.models import Recipe, Ingredient, Tag
+from users.models import User
 from rest_framework import viewsets, permissions, filters, status
 from rest_framework.permissions import AllowAny
-from djoser.views import UserViewSet as DjoserUserViewSet
 from djoser.serializers import SetPasswordSerializer
 from .permissions import IsOwnerOrReadOnly
 
-from django.contrib.auth import get_user_model
+# from django.contrib.auth import get_user_model
 
 
-User = get_user_model()
+# User = get_user_model()
 
 
-class UserViewSet(viewsets.ModelViewSet):
+class MeUserViewSet(DjoserUserViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (permissions.AllowAny,)
 
-    @action(detail=False,
-            methods=('get',),
-            permission_classes=(permissions.IsAuthenticated),
-            url_path='me/avatar'
-            )
-    def me(self, request, *args, **kwargs):
-        """Получение данных текущего пользователя."""
-        return Response(self.get_serializer(request.user).data)
-
     @action(
         detail=False,
-        methods=('get', 'put', 'delete'),
+        methods=('put', 'delete'),
         permission_classes=[permissions.AllowAny],
         url_path='/me/avatar',
     )
