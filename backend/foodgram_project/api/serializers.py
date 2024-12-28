@@ -1,16 +1,47 @@
 from rest_framework import serializers
 from djoser.serializers import UserSerializer as DjoserUserSerializer
-
+from django.contrib.auth import get_user_model
 
 from food_recipes.models import Recipe, Ingredient, IngredientForRecipe, Tag
-from users.models import User
+from users.models import Subscription 
 
+User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
         fields = ('email', 'username', 'first_name', 'last_name', 'password')
+
+class SubscriptionSerializer(serializers.ModelSerializer):
+class FollowSerializer(serializers.ModelSerializer):
+    user = serializers.SlugRelatedField(
+        slug_field='username',
+        read_only=True,
+        default=CurrentUserDefault(),
+    )
+    following = serializers.SlugRelatedField(
+        slug_field='username',
+        queryset=User.objects.all(),
+    )
+
+    class Meta:
+        model = Follow
+        fields = ('id', 'user', 'following')
+        validators = (
+            serializers.UniqueTogetherValidator(
+                queryset=Follow.objects.all(),
+                fields=('user', 'following'),
+                message='Вы уже подписаны на данного автора!',
+            ),
+        )
+
+    def validate(self, data):
+        if self.context['request'].user == data['following']:
+            raise serializers.ValidationError(
+                'Вы не можете подписаться сам на себя!'
+            )
+        return data
 
 class AvatarSerializer(serializers.ModelSerializer):
 

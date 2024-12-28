@@ -3,16 +3,16 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from .serializers import RecipeSerializer, IngredientSerializer, TagSerializer, UserSerializer, AvatarSerializer
 from food_recipes.models import Recipe, Ingredient, Tag
-from users.models import User
+# from users.models import User
 from rest_framework import viewsets, permissions, filters, status
 from rest_framework.permissions import AllowAny
 from djoser.serializers import SetPasswordSerializer
 from .permissions import IsOwnerOrReadOnly
 
-# from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model
 
 
-# User = get_user_model()
+User = get_user_model()
 
 
 class MeUserViewSet(DjoserUserViewSet):
