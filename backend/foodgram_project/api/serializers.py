@@ -3,7 +3,7 @@ from djoser.serializers import UserSerializer as DjoserUserSerializer
 from django.contrib.auth import get_user_model
 
 from food_recipes.models import Recipe, Ingredient, IngredientForRecipe, Tag
-from users.models import Subscription 
+from users.models import Subscription
 
 User = get_user_model()
 
@@ -14,11 +14,10 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('email', 'username', 'first_name', 'last_name', 'password')
 
 class SubscriptionSerializer(serializers.ModelSerializer):
-class FollowSerializer(serializers.ModelSerializer):
     user = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True,
-        default=CurrentUserDefault(),
+        # default=CurrentUserDefault(),
     )
     following = serializers.SlugRelatedField(
         slug_field='username',
@@ -26,18 +25,18 @@ class FollowSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        model = Follow
-        fields = ('id', 'user', 'following')
+        model = Subscription
+        fields = ('id', 'author', 'subscriber')
         validators = (
             serializers.UniqueTogetherValidator(
-                queryset=Follow.objects.all(),
-                fields=('user', 'following'),
+                queryset=Subscription.objects.all(),
+                fields=('author', 'subscriber'),
                 message='Вы уже подписаны на данного автора!',
             ),
         )
 
     def validate(self, data):
-        if self.context['request'].user == data['following']:
+        if self.context['request'].user == data['subscriber']:
             raise serializers.ValidationError(
                 'Вы не можете подписаться сам на себя!'
             )

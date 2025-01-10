@@ -15,7 +15,7 @@ class Tag(models.Model):
         unique=True,
         max_length=32,
         verbose_name='Слаг',
-        validators=(validate_slug,)        
+        validators=(validate_slug,)
     )
 
     class Meta:
@@ -137,19 +137,3 @@ class ShoppingList(models.Model):
 
     def __str__(self):
         return f'{self.user},{self.recipe}'
-
-
-class Follow(models.Model):
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='follower'
-    )
-    following = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='following'
-    )
-
-    def __str__(self):
-        return self.user
