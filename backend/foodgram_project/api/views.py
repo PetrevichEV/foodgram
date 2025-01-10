@@ -20,8 +20,15 @@ class MeUserViewSet(DjoserUserViewSet):
     serializer_class = UserSerializer
     permission_classes = (permissions.AllowAny,)
 
+    @action(['get'], detail=False, permission_classes=(permissions.IsAuthenticated,))
+    def me(self, request, *args, **kwargs):
+        self.get_object = self.get_instance
+        return self.retrieve(request, *args, **kwargs)
+
     @action(detail=False, methods=('put',), url_path='me/avatar',
             permission_classes=(permissions.IsAuthenticated,))
+    
+    
     def avatar(self, request):
         """Добавление или обновление аватара."""
         serializer = AvatarSerializer(request.user,

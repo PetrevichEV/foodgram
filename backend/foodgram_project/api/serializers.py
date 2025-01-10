@@ -1,25 +1,29 @@
 from rest_framework import serializers
-from djoser.serializers import UserSerializer as DjoserUserSerializer
+
 from django.contrib.auth import get_user_model
+from drf_base64.fields import Base64ImageField
 
 from food_recipes.models import Recipe, Ingredient, IngredientForRecipe, Tag
 from users.models import Subscription
 
 User = get_user_model()
 
+
 class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('email', 'username', 'first_name', 'last_name', 'password')
+        fields = ('email', 'username', 'first_name',
+                  'last_name', 'password', 'avatar')
+
 
 class SubscriptionSerializer(serializers.ModelSerializer):
-    user = serializers.SlugRelatedField(
+    author = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True,
         # default=CurrentUserDefault(),
     )
-    following = serializers.SlugRelatedField(
+    subscriber = serializers.SlugRelatedField(
         slug_field='username',
         queryset=User.objects.all(),
     )
@@ -42,11 +46,15 @@ class SubscriptionSerializer(serializers.ModelSerializer):
             )
         return data
 
+
 class AvatarSerializer(serializers.ModelSerializer):
+
+    avatar = Base64ImageField(allow_null=True)
 
     class Meta:
         model = User
         fields = ('avatar', )
+
 
 class TagSerializer(serializers.ModelSerializer):
 
@@ -56,17 +64,17 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class IngredientSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Ingredient
         fields = ('id', 'name', 'measurement_unit')
 
 
 class IngredientForRecipeSerializer(serializers.ModelSerializer):
+    id = serializers.PrimaryKeyRelatedField(queryset=Ingredient.objects.all())
 
     class Meta:
         model = IngredientForRecipe
-        fields = '__all__'
+        fields = ('id', 'amount')
 
 
 class RecipeSerializer(serializers.ModelSerializer):
