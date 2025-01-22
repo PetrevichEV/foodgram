@@ -20,17 +20,18 @@ class MeUserViewSet(DjoserUserViewSet):
     serializer_class = UserSerializer
     permission_classes = (permissions.AllowAny,)
 
-    @action(['get'], detail=False, permission_classes=(permissions.IsAuthenticated,))
-    def me(self, request, *args, **kwargs):
-        self.get_object = self.get_instance
-        return self.retrieve(request, *args, **kwargs)
+    @action(detail=False, methods=('get',),
+            permission_classes=(permissions.IsAuthenticated,))
+    def me(self, request):
+        """Отражение текущего пользователя."""
+        user = request.user
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
 
     @action(detail=False, methods=('put',), url_path='me/avatar',
             permission_classes=(permissions.IsAuthenticated,))
-    
-    
     def avatar(self, request):
-        """Добавление или обновление аватара."""
+        """Добавление/обновление аватара."""
         serializer = AvatarSerializer(request.user,
                                       data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
@@ -40,9 +41,8 @@ class MeUserViewSet(DjoserUserViewSet):
     @avatar.mapping.delete
     def delete_avatar(self, request):
         """Удаление аватара."""
-        user = request.user
-        user.avatar.delete(save=False)
-        user.save()
+        user = self.request.user
+        user.avatar.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 

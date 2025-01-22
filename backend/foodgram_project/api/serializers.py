@@ -17,20 +17,20 @@ class UserSerializer(serializers.ModelSerializer):
                   'last_name', 'password', 'avatar')
 
 
+class AvatarSerializer(serializers.ModelSerializer):
+
+    avatar = Base64ImageField(allow_null=True)
+
+    class Meta:
+        model = User
+        fields = ('avatar', )
+
+
 class SubscriptionSerializer(serializers.ModelSerializer):
-    author = serializers.SlugRelatedField(
-        slug_field='username',
-        read_only=True,
-        # default=CurrentUserDefault(),
-    )
-    subscriber = serializers.SlugRelatedField(
-        slug_field='username',
-        queryset=User.objects.all(),
-    )
 
     class Meta:
         model = Subscription
-        fields = ('id', 'author', 'subscriber')
+        fields = ('author', 'subscriber')
         validators = (
             serializers.UniqueTogetherValidator(
                 queryset=Subscription.objects.all(),
@@ -45,15 +45,6 @@ class SubscriptionSerializer(serializers.ModelSerializer):
                 'Вы не можете подписаться сам на себя!'
             )
         return data
-
-
-class AvatarSerializer(serializers.ModelSerializer):
-
-    avatar = Base64ImageField(allow_null=True)
-
-    class Meta:
-        model = User
-        fields = ('avatar', )
 
 
 class TagSerializer(serializers.ModelSerializer):
