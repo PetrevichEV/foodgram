@@ -1,9 +1,13 @@
 from djoser.views import UserViewSet as DjoserUserViewSet
+from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from .serializers import RecipeSerializer, IngredientSerializer, TagSerializer, UserSerializer, AvatarSerializer
+from .serializers import (RecipeListSerializer, IngredientSerializer,
+                          TagSerializer, UserSerializer, AvatarSerializer,
+                          SubscriptionNewSerializer,
+                          SubscriptionListSerializer)
 from food_recipes.models import Recipe, Ingredient, Tag
-# from users.models import User
+from users.models import Subscription
 from rest_framework import viewsets, permissions, filters, status
 from rest_framework.permissions import AllowAny
 from djoser.serializers import SetPasswordSerializer
@@ -46,6 +50,32 @@ class MeUserViewSet(DjoserUserViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+class SubscriptionListViewSet(viewsets.ModelViewSet):
+    queryset = Subscription.objects.all()
+    permission_classes = [permissions.IsAuthenticated, ]
+    serializer_class = SubscriptionListSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        return user.subscribers.filter(user=user)
+
+
+class SubscriptionViewSet(viewsets.ModelViewSet):
+    def post(self, request, pk):
+        author = request.user
+        subscriber = get_object_or_404(User, id=pk)
+        create_subscriber = Subscription.objects.create(
+            author=author, subscriber=subscriber)
+        serializer = SubscriptionNewSerializer(
+            create_subscriber, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    # def delete(self, request, id=None, **kwargs):
+    #     return self.destroy_object(
+    #         get_object_or_404(User, pk=id), self.request.user.subscriptions
+    #     )
+
+
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
@@ -62,11 +92,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
-    serializer_class = RecipeSerializer
-
-
-class FavouritesViewSet(viewsets.ModelViewSet):
-    pass
+    serializer_class = RecipeListSerializer
 
 
 class ShoppingListViewSet(viewsets.ModelViewSet):
@@ -77,9 +103,5 @@ class UserViewSet(viewsets.ModelViewSet):
     pass
 
 
-class SubscriptionViewSet(viewsets.ModelViewSet):
-    pass
-
-
-class SubscriptionListViewSet(viewsets.ModelViewSet):
+class FavouritesViewSet(viewsets.ModelViewSet):
     pass
