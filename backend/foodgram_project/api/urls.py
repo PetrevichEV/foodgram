@@ -8,8 +8,8 @@ from .views import (
     FavouritesViewSet,
     ShoppingListViewSet,
     MeUserViewSet,
-    SubscriptionViewSet,
-    SubscriptionListViewSet
+    # SubscriptionViewSet,
+    # SubscriptionListViewSet
 )
 app_name = 'api'
 
@@ -29,15 +29,15 @@ router.register(
     basename='shopping'
 )
 router.register(r'users', MeUserViewSet, basename='users')
-router.register(
-    'users/subscriptions',
-    SubscriptionListViewSet,
-    basename='subscriptions'),
-router.register(
-    r'users/(?P<id>\d+)/subscribe',
-    SubscriptionViewSet,
-    basename='subscribe'
-)
+# router.register(
+#     'users/subscriptions',
+#     SubscriptionListViewSet,
+#     basename='subscriptions'),
+# router.register(
+#     r'users/(?P<id>\d+)/subscribe',
+#     SubscriptionViewSet,
+#     basename='subscribe'
+# )
 
 urlpatterns = [
     path('', include(router.urls)),

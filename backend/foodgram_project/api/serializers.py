@@ -2,6 +2,9 @@ from rest_framework import serializers
 from django.core.paginator import Paginator
 from django.contrib.auth import get_user_model
 from drf_base64.fields import Base64ImageField
+from rest_framework.exceptions import ValidationError
+from django.db import IntegrityError
+from django.shortcuts import get_object_or_404
 
 from food_recipes.models import Recipe, Ingredient, IngredientForRecipe, Tag
 from users.models import Subscription
@@ -26,78 +29,49 @@ class AvatarSerializer(serializers.ModelSerializer):
         fields = ('avatar', )
 
 
-class SubscriptionListSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Subscription
-        fields = ('author', 'subscriber')
-        validators = (
-            serializers.UniqueTogetherValidator(
-                queryset=Subscription.objects.all(),
-                fields=('author', 'subscriber'),
-                message='Вы уже подписаны на данного автора!',
-            ),
-        )
-
-    def validate(self, data):
-        if self.context['request'].user == data['subscriber']:
-            raise serializers.ValidationError(
-                'Вы не можете подписаться сам на себя!'
-            )
-        return data
-
 class SubscriptionNewSerializer(serializers.ModelSerializer):
 
-    class Meta:
-        model = Subscription
-        fields = ('author', 'subscriber')
-    #     validators = (
-    #         serializers.UniqueTogetherValidator(
-    #             queryset=Subscription.objects.all(),
-    #             fields=('author', 'subscriber'),
-    #             message='Вы уже подписаны на данного автора!',
-    #         ),
-    #     )
+    autor_id = serializers.IntegerField(required=True)
 
-    # def validate(self, data):
-    #     if self.context['request'].user == data['subscriber']:
-    #         raise serializers.ValidationError(
-    #             'Вы не можете подписаться сам на себя!'
-    #         )
-    #     return data
+    def create(self, validated_data):
+        """Создает подписку для текущего пользователя на пользователя."""
+        subscriber = self.context['request'].user
+        autor_id = validated_data['autor_id']
+
+        if subscriber.id == autor_id:
+            raise ValidationError({"Нельзя подписаться на самого себя"})
+
+        autor = get_object_or_404(User, pk=autor_id)
+
+        try:
+            subscriptions_obj = Subscription.objects.create(
+                autor=autor, subscriber=subscriber)
+            return subscriptions_obj
+        except IntegrityError:
+            raise ValidationError({"Вы уже подписаны на этого пользователя"})
+
+    def delete(self, validated_data):
+        """Удаляет подписку для текущего пользователя."""
+
+        subscriber = self.context['request'].user
+        autor_id = validated_data['autor_id']
+        autor = get_object_or_404(User, pk=autor_id)
+
+        subscriptions_obj = Subscription.objects.filter(
+            autor=autor, subscriber=subscriber).first()
+
+        if not subscriptions_obj:
+            raise ValidationError({"Подписка не найдена"})
+        subscriptions_obj.delete()
+        return subscriptions_obj
+
 
 class SubscriptionListSerializer(UserSerializer):
-    email = serializers.ReadOnlyField(source='user.email')
-    id = serializers.ReadOnlyField(source='following.id')
-    username = serializers.ReadOnlyField(source='following.username')
-    first_name = serializers.ReadOnlyField(source='following.first_name')
-    last_name = serializers.ReadOnlyField(source='following.last_name')
-    is_subscribed = serializers.SerializerMethodField()
-    recipes = serializers.SerializerMethodField()
-    recipes_count = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ('email', 'username', 'first_name',
-                  'last_name', 'password', 'avatar',
-                  'recipes_count', 'recipes', )
+        fields = ['id', 'username', 'first_name', 'last_name', 'subscriptions']
 
-    def get_is_subscribed(self, obj):
-        user = self.context.get('request').user
-        if user.is_anonymous:
-            return False
-        return user.subscriptions.filter(user=user, following=obj.id).exists()
-
-    def get_recipes(self, obj):
-        page_size = 3
-        recipes = Recipe.objects.filter(author=obj.following)
-        paginator = Paginator(recipes, page_size)
-        recipes_paginated = paginator.page(1)
-        serializer = RecipeListSerializer(recipes_paginated, many=True)
-        return serializer.data
-
-    def get_recipes_count(self, obj):
-        return obj.recipes.count()
 
 class TagSerializer(serializers.ModelSerializer):
 

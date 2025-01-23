@@ -49,26 +49,58 @@ class MeUserViewSet(DjoserUserViewSet):
         user.avatar.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @action(detail=False, methods=['get'], url_path='subscriptions',
+            permission_classes=(permissions.IsAuthenticated,))
+    def get_subscriptions(self, request):
+        """Возвращает список пользователей,
+        на которых подписан текущий пользователь."""
+        user = request.user
+        serializer = SubscriptionListSerializer(
+            user.subscriptions.all(), many=True, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-class SubscriptionListViewSet(viewsets.ModelViewSet):
-    queryset = Subscription.objects.all()
-    permission_classes = [permissions.IsAuthenticated, ]
-    serializer_class = SubscriptionListSerializer
-
-    def get_queryset(self):
-        user = self.request.user
-        return user.subscribers.filter(user=user)
-
-
-class SubscriptionViewSet(viewsets.ModelViewSet):
-    def post(self, request, pk):
-        author = request.user
-        subscriber = get_object_or_404(User, id=pk)
-        create_subscriber = Subscription.objects.create(
-            author=author, subscriber=subscriber)
+    @action(detail=True, methods=['post', 'delete'], url_path='subscribe')
+    def subscribe(self, request):
+        """
+        Подписывает текущего пользователя на другого пользователя.
+        """
         serializer = SubscriptionNewSerializer(
-            create_subscriber, context={'request': request})
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+            data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        serializer.create(serializer.validated_data)
+        return Response({'message': 'Подписка создана'}, status=status.HTTP_201_CREATED)
+
+    def unsubscribe(self, request):
+        """
+        Отписывает текущего пользователя от другого пользователя.
+        """
+        serializer = SubscriptionNewSerializer(
+            data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        serializer.delete(serializer.validated_data)
+        return Response({'message': 'Подписка удалена'},
+                        status=status.HTTP_204_NO_CONTENT)
+
+
+# class SubscriptionListViewSet(viewsets.ModelViewSet):
+#     queryset = Subscription.objects.all()
+#     permission_classes = [permissions.IsAuthenticated, ]
+#     serializer_class = SubscriptionListSerializer
+
+#     def get_queryset(self):
+#         user = self.request.user
+#         return user.subscribers.filter(user=user)
+
+
+# class SubscriptionViewSet(viewsets.ModelViewSet):
+#     def post(self, request, pk):
+#         author = request.user
+#         subscriber = get_object_or_404(User, id=pk)
+#         create_subscriber = Subscription.objects.create(
+#             author=author, subscriber=subscriber)
+#         serializer = SubscriptionNewSerializer(
+#             create_subscriber, context={'request': request})
+#         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     # def delete(self, request, id=None, **kwargs):
     #     return self.destroy_object(

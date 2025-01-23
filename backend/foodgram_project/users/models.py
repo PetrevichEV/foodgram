@@ -30,6 +30,14 @@ class User(AbstractUser):
         null=True,
         upload_to='avatars'
     )
+    subscriptions = models.ManyToManyField(
+        'self',
+        verbose_name='Подписки',
+        through='Subscription',
+        related_name='user_subscriptions',
+        symmetrical=False,
+        blank=True,
+    )    
 
     class Meta:
         ordering = ('username',)
