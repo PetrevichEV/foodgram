@@ -9,8 +9,7 @@ from .serializers import (RecipeListSerializer, IngredientSerializer,
 from food_recipes.models import Recipe, Ingredient, Tag
 from users.models import Subscription
 from rest_framework import viewsets, permissions, filters, status
-from rest_framework.permissions import AllowAny
-from djoser.serializers import SetPasswordSerializer
+from .filters import IngredientFilter
 from .permissions import IsOwnerOrReadOnly
 from .pagination import PagePaginator
 
@@ -107,20 +106,9 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (permissions.AllowAny,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('^name',)
+    filterset_class = IngredientFilter
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeListSerializer
-
-
-class ShoppingListViewSet(viewsets.ModelViewSet):
-    pass
-
-
-class UserViewSet(viewsets.ModelViewSet):
-    pass
-
-
-class FavouritesViewSet(viewsets.ModelViewSet):
-    pass

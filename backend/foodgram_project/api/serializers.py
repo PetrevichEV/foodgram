@@ -28,6 +28,7 @@ class AvatarSerializer(serializers.ModelSerializer):
         model = User
         fields = ('avatar', )
 
+
 class SubscriptionNewSerializer(serializers.ModelSerializer):
     """Cоздание/удаление подписки."""
 
@@ -56,7 +57,7 @@ class SubscriptionListSerializer(UserSerializer):
 
     def get_recipes_count(self, obj):
         return obj.recipes.count()
-    
+
     def get_recipes(self, obj):
         queryset = Recipe.objects.filter(author=obj)
         return RecipeListSerializer(queryset, many=True,
@@ -64,7 +65,7 @@ class SubscriptionListSerializer(UserSerializer):
 
 
 class TagSerializer(serializers.ModelSerializer):
-    
+
     class Meta:
         model = Tag
         fields = ('id', 'name', 'slug')
@@ -77,6 +78,18 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class IngredientForRecipeSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField(source='ingredient.id',)
+    name = serializers.ReadOnlyField(source='ingredient.name',)
+    measurement_unit = serializers.ReadOnlyField(
+        source='ingredient.measurement_unit',)
+
+    class Meta:
+        model = IngredientForRecipe
+        fields = ('id', 'name', 'measurement_unit', 'amount')
+
+
+class IngredientForRecipeCreateSerializer(serializers.ModelSerializer):
+    """Добавление ингридиентов"""
     id = serializers.PrimaryKeyRelatedField(queryset=Ingredient.objects.all())
 
     class Meta:
