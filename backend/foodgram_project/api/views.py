@@ -12,6 +12,7 @@ from rest_framework import viewsets, permissions, filters, status
 from rest_framework.permissions import AllowAny
 from djoser.serializers import SetPasswordSerializer
 from .permissions import IsOwnerOrReadOnly
+from .pagination import PagePaginator
 
 from django.contrib.auth import get_user_model
 
@@ -23,6 +24,7 @@ class MeUserViewSet(DjoserUserViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (permissions.AllowAny,)
+    pagination_class = PagePaginator
 
     @action(detail=False, methods=('get',),
             permission_classes=(permissions.IsAuthenticated,))
@@ -49,63 +51,48 @@ class MeUserViewSet(DjoserUserViewSet):
         user.avatar.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=False, methods=['get'], url_path='subscriptions',
-            permission_classes=(permissions.IsAuthenticated,))
-    def get_subscriptions(self, request):
-        """Возвращает список пользователей,
-        на которых подписан текущий пользователь."""
-        user = request.user
+    @action(detail=False, methods=['GET'],
+            permission_classes=[permissions.IsAuthenticated])
+    def subscriptions(self, request):
+        """Подписки"""
+        current_user = request.user
+        subscribed_users = User.objects.filter(following__user=current_user)
+        paginated_users = self.paginate_queryset(subscribed_users)
         serializer = SubscriptionListSerializer(
-            user.subscriptions.all(), many=True, context={'request': request})
-        return Response(serializer.data, status=status.HTTP_200_OK)
+            paginated_users, many=True, context={'request': request})
+        return self.get_paginated_response(serializer.data)
 
-    @action(detail=True, methods=['post', 'delete'], url_path='subscribe')
-    def subscribe(self, request):
-        """
-        Подписывает текущего пользователя на другого пользователя.
-        """
+    @action(detail=True, methods=['POST'],
+            permission_classes=[permissions.IsAuthenticated], url_path="subscribe")
+    def subscribe(self, request, id=None):
+        """Создание подписки."""
+        user_to_follow = get_object_or_404(User, id=id)
+        subscription_data = {
+            'user': request.user.id,
+            'author': user_to_follow.id
+        }
         serializer = SubscriptionNewSerializer(
-            data=request.data, context={'request': request})
+            data=subscription_data,
+            context={"request": request}
+        )
         serializer.is_valid(raise_exception=True)
-        serializer.create(serializer.validated_data)
-        return Response({'message': 'Подписка создана'}, status=status.HTTP_201_CREATED)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def unsubscribe(self, request):
-        """
-        Отписывает текущего пользователя от другого пользователя.
-        """
-        serializer = SubscriptionNewSerializer(
-            data=request.data, context={'request': request})
-        serializer.is_valid(raise_exception=True)
-        serializer.delete(serializer.validated_data)
-        return Response({'message': 'Подписка удалена'},
-                        status=status.HTTP_204_NO_CONTENT)
-
-
-# class SubscriptionListViewSet(viewsets.ModelViewSet):
-#     queryset = Subscription.objects.all()
-#     permission_classes = [permissions.IsAuthenticated, ]
-#     serializer_class = SubscriptionListSerializer
-
-#     def get_queryset(self):
-#         user = self.request.user
-#         return user.subscribers.filter(user=user)
-
-
-# class SubscriptionViewSet(viewsets.ModelViewSet):
-#     def post(self, request, pk):
-#         author = request.user
-#         subscriber = get_object_or_404(User, id=pk)
-#         create_subscriber = Subscription.objects.create(
-#             author=author, subscriber=subscriber)
-#         serializer = SubscriptionNewSerializer(
-#             create_subscriber, context={'request': request})
-#         return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    # def delete(self, request, id=None, **kwargs):
-    #     return self.destroy_object(
-    #         get_object_or_404(User, pk=id), self.request.user.subscriptions
-    #     )
+    @subscribe.mapping.delete
+    def remove_subscription(self, request, id=None):
+        """Удаление подписки."""
+        user_to_follow = get_object_or_404(User, id=id)
+        current_user = request.user
+        deleted_count, _ = Subscription.objects.filter(
+            user=current_user, author=user_to_follow
+        ).delete()
+        if not deleted_count:
+            return Response(
+                {'detail': 'Вы не подписаны на данного пользователя.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):

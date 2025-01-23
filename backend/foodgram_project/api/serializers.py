@@ -28,53 +28,43 @@ class AvatarSerializer(serializers.ModelSerializer):
         model = User
         fields = ('avatar', )
 
-
 class SubscriptionNewSerializer(serializers.ModelSerializer):
+    """Cоздание/удаление подписки."""
 
-    autor_id = serializers.IntegerField(required=True)
+    class Meta:
+        model = Subscription
+        fields = ('user', 'author')
 
-    def create(self, validated_data):
-        """Создает подписку для текущего пользователя на пользователя."""
-        subscriber = self.context['request'].user
-        autor_id = validated_data['autor_id']
-
-        if subscriber.id == autor_id:
-            raise ValidationError({"Нельзя подписаться на самого себя"})
-
-        autor = get_object_or_404(User, pk=autor_id)
-
-        try:
-            subscriptions_obj = Subscription.objects.create(
-                autor=autor, subscriber=subscriber)
-            return subscriptions_obj
-        except IntegrityError:
-            raise ValidationError({"Вы уже подписаны на этого пользователя"})
-
-    def delete(self, validated_data):
-        """Удаляет подписку для текущего пользователя."""
-
-        subscriber = self.context['request'].user
-        autor_id = validated_data['autor_id']
-        autor = get_object_or_404(User, pk=autor_id)
-
-        subscriptions_obj = Subscription.objects.filter(
-            autor=autor, subscriber=subscriber).first()
-
-        if not subscriptions_obj:
-            raise ValidationError({"Подписка не найдена"})
-        subscriptions_obj.delete()
-        return subscriptions_obj
+    def to_representation(self, instance):
+        author = instance.author
+        serializer = SubscriptionListSerializer(author, context=self.context)
+        return serializer.data
 
 
 class SubscriptionListSerializer(UserSerializer):
+    """Отображение подписанного пользователя."""
+
+    recipes = serializers.SerializerMethodField()
+    recipes_count = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'first_name', 'last_name', 'subscriptions']
+        fields = UserSerializer.Meta.fields + (
+            'recipes_count',
+            'recipes'
+        )
+
+    def get_recipes_count(self, obj):
+        return obj.recipes.count()
+    
+    def get_recipes(self, obj):
+        queryset = Recipe.objects.filter(author=obj)
+        return RecipeListSerializer(queryset, many=True,
+                                    context=self.context).data
 
 
 class TagSerializer(serializers.ModelSerializer):
-
+    
     class Meta:
         model = Tag
         fields = ('id', 'name', 'slug')
