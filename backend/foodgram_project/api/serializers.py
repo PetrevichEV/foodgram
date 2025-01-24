@@ -109,8 +109,9 @@ class IngredientForRecipeCreateSerializer(serializers.ModelSerializer):
     """Сериализатор для добавления ингредиентов в рецепт."""
 
     id = serializers.PrimaryKeyRelatedField(
-        queryset=Ingredient.objects.all(), source='ingredient'
+        queryset=Ingredient.objects.all(), 
     )
+    amount = serializers.IntegerField()
 
     class Meta:
         model = IngredientForRecipe
@@ -216,7 +217,6 @@ class RecipeNewSerializer(serializers.ModelSerializer):
             'author',
         )
 
-    @staticmethod
     def add_ingredients(recipe, ingredients):
         """Добавление ингредиентов в рецепт."""
         ingredient_for_recipes = [
@@ -231,7 +231,6 @@ class RecipeNewSerializer(serializers.ModelSerializer):
             ingredient_for_recipes
         )
 
-    @transaction.atomic
     def create(self, validated_data):
         """Создание рецепта."""
         tags = validated_data.pop('tags')
@@ -245,7 +244,6 @@ class RecipeNewSerializer(serializers.ModelSerializer):
         self.add_ingredients(recipe, ingredients)
         return recipe
 
-    @transaction.atomic
     def update(self, instance, validated_data):
         """Обновление рецепта."""
         ingredients = validated_data.pop('ingredients')
