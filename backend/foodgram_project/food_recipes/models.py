@@ -7,6 +7,7 @@ from .validators import validate_slug
 User = get_user_model()
 
 class Tag(models.Model):
+    """Модель тагов."""
     name = models.CharField(
         max_length=32,
         verbose_name='Название',
@@ -24,6 +25,7 @@ class Tag(models.Model):
 
 
 class Ingredient(models.Model):
+    """Модель ингридиентов."""
     name = models.CharField(
         max_length=128,
         verbose_name='Название'
@@ -42,6 +44,7 @@ class Ingredient(models.Model):
 
 
 class Recipe(models.Model):
+    """Модель рецептов."""
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -81,6 +84,7 @@ class Recipe(models.Model):
 
 
 class IngredientForRecipe(models.Model):
+    """Модель ингридиентов для рецептов."""
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
@@ -104,6 +108,7 @@ class IngredientForRecipe(models.Model):
 
 
 class Favourites(models.Model):
+    """Модель избранного."""
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE
@@ -122,6 +127,7 @@ class Favourites(models.Model):
 
 
 class ShoppingList(models.Model):
+    """Модель списка покупок."""
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE
@@ -137,3 +143,4 @@ class ShoppingList(models.Model):
 
     def __str__(self):
         return f'{self.user},{self.recipe}'
+    

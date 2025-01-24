@@ -1,16 +1,14 @@
-from rest_framework import serializers
-from django.core.paginator import Paginator
 from django.contrib.auth import get_user_model
-from drf_base64.fields import Base64ImageField
-from rest_framework.exceptions import ValidationError
-from django.db import IntegrityError
-from django.shortcuts import get_object_or_404
+from django.db import transaction
 
-from food_recipes.models import Recipe, Ingredient, IngredientForRecipe, Tag
+from rest_framework import serializers
+from drf_base64.fields import Base64ImageField
+
+from food_recipes.models import Ingredient, IngredientForRecipe, Recipe, Tag
 from users.models import Subscription
 
-User = get_user_model()
 
+User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
 
@@ -52,16 +50,21 @@ class SubscriptionListSerializer(UserSerializer):
         model = User
         fields = UserSerializer.Meta.fields + (
             'recipes_count',
-            'recipes'
+            'recipes',
         )
 
     def get_recipes_count(self, obj):
+        """Возвращает количество рецептов автора."""
         return obj.recipes.count()
 
     def get_recipes(self, obj):
+        """Возвращает рецепты автора."""
         queryset = Recipe.objects.filter(author=obj)
-        return RecipeListSerializer(queryset, many=True,
-                                    context=self.context).data
+        return RecipeSerializer(
+            queryset,
+            many=True,
+            context=self.context
+        ).data
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -72,16 +75,21 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class IngredientSerializer(serializers.ModelSerializer):
+    """Сериализатор для ингредиентов."""
+
     class Meta:
         model = Ingredient
         fields = ('id', 'name', 'measurement_unit')
 
 
 class IngredientForRecipeSerializer(serializers.ModelSerializer):
-    id = serializers.ReadOnlyField(source='ingredient.id',)
-    name = serializers.ReadOnlyField(source='ingredient.name',)
+    """Сериализатор для ингредиента в рецепте."""
+
+    id = serializers.ReadOnlyField(source='ingredient.id')
+    name = serializers.ReadOnlyField(source='ingredient.name')
     measurement_unit = serializers.ReadOnlyField(
-        source='ingredient.measurement_unit',)
+        source='ingredient.measurement_unit'
+    )
 
     class Meta:
         model = IngredientForRecipe
@@ -89,16 +97,129 @@ class IngredientForRecipeSerializer(serializers.ModelSerializer):
 
 
 class IngredientForRecipeCreateSerializer(serializers.ModelSerializer):
-    """Добавление ингридиентов"""
-    id = serializers.PrimaryKeyRelatedField(queryset=Ingredient.objects.all())
+    """Сериализатор для добавления ингредиентов в рецепт."""
+
+    id = serializers.PrimaryKeyRelatedField(
+        queryset=Ingredient.objects.all()
+    )
 
     class Meta:
         model = IngredientForRecipe
         fields = ('id', 'amount')
 
 
-class RecipeListSerializer(serializers.ModelSerializer):
+class RecipeSerializer(serializers.ModelSerializer):
+    """Отображение рецептов."""
+
+    author = UserSerializer(read_only=True)
+    tags = TagSerializer(many=True, read_only=True)
+    ingredients = IngredientForRecipeCreateSerializer(
+        many=True,
+        read_only=True,
+        source='recipe_ingredients'
+    )
+    is_favorited = serializers.BooleanField(
+        read_only=True,
+        default=0
+    )
+    is_in_shopping_cart = serializers.BooleanField(
+        read_only=True,
+        default=0
+    )
+    image = Base64ImageField()
 
     class Meta:
         model = Recipe
-        fields = ('id', 'name', 'image', 'cooking_time')
+        fields = (
+            'id',
+            'tags',
+            'author',
+            'ingredients',
+            'is_favorited',
+            'is_in_shopping_cart',
+            'name',
+            'image',
+            'text',
+            'cooking_time',
+        )
+
+
+class RecipeNewSerializer(serializers.ModelSerializer):
+    """Создание рецептов."""
+
+    tags = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=Tag.objects.all(),
+        allow_empty=False,
+        label="Теги",
+    )
+    author = UserSerializer(
+        read_only=True,
+        label="Автор"
+    )
+    ingredients = IngredientForRecipeSerializer(
+        many=True,
+        allow_empty=False,
+        label="Ингредиенты",
+    )
+    image = Base64ImageField(label="Изображение")
+
+    class Meta:
+        model = Recipe
+        fields = (
+            'id',
+            'ingredients',
+            'tags',
+            'image',
+            'name',
+            'text',
+            'cooking_time',
+            'author',
+        )
+
+    @staticmethod
+    def add_ingredients(recipe, ingredients):
+        """Добавление ингредиентов в рецепт."""
+        ingredient_for_recipes = [
+            IngredientForRecipe(
+                recipe=recipe,
+                ingredient=ingredient['ingredient'],
+                amount=ingredient['amount'],
+            )
+            for ingredient in ingredients
+        ]
+        IngredientForRecipe.objects.bulk_create(
+            ingredient_for_recipes
+        )
+
+    @transaction.atomic
+    def create(self, validated_data):
+        """Создание рецепта."""
+        tags = validated_data.pop('tags')
+        ingredients = validated_data.pop('ingredients')
+        current_user = self.context['request'].user
+        recipe = Recipe.objects.create(
+            author=current_user,
+            **validated_data
+        )
+        recipe.tags.set(tags)
+        self.add_ingredients(recipe, ingredients)
+        return recipe
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        """Обновление рецепта."""
+        ingredients = validated_data.pop('ingredients')
+        tags = validated_data.pop('tags')
+        instance.ingredients.clear()
+        instance.tags.set(tags)
+        self.add_ingredients(instance, ingredients)
+        return super().update(instance, validated_data)
+
+    def to_representation(self, instance):
+        """Преобразование объекта рецепта в представление."""
+        return RecipeSerializer(
+            instance,
+            context=self.context
+        ).data
+    
