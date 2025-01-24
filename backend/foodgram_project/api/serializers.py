@@ -2,13 +2,22 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 
 from rest_framework import serializers
+
 from drf_base64.fields import Base64ImageField
 
-from food_recipes.models import Ingredient, IngredientForRecipe, Recipe, Tag
+from food_recipes.models import (
+    Ingredient,
+    IngredientForRecipe,
+    Recipe,
+    Tag,
+    Favourites,
+    ShoppingList,
+)
 from users.models import Subscription
 
 
 User = get_user_model()
+
 
 class UserSerializer(serializers.ModelSerializer):
 
@@ -100,7 +109,7 @@ class IngredientForRecipeCreateSerializer(serializers.ModelSerializer):
     """Сериализатор для добавления ингредиентов в рецепт."""
 
     id = serializers.PrimaryKeyRelatedField(
-        queryset=Ingredient.objects.all()
+        queryset=Ingredient.objects.all(), source='ingredient'
     )
 
     class Meta:
@@ -108,12 +117,42 @@ class IngredientForRecipeCreateSerializer(serializers.ModelSerializer):
         fields = ('id', 'amount')
 
 
+class FavoriteSerializer(serializers.ModelSerializer):
+    """Сериализатор для добавления рецептов в избранное."""
+
+    def to_representation(self, instance):
+        recipe = instance.recipe
+        serializer = RecipeSerializer(
+            recipe, context=self.context
+        )
+        return serializer.data
+
+    class Meta:
+        model = Favourites
+        fields = ('user', 'recipe')
+
+
+class ShoppingListSerializer(serializers.ModelSerializer):
+    """Сериализатор для добавления рецептов в избранное."""
+
+    def to_representation(self, instance):
+        recipe = instance.recipe
+        serializer = RecipeSerializer(
+            recipe, context=self.context
+        )
+        return serializer.data
+
+    class Meta:
+        model = ShoppingList
+        fields = ('user', 'recipe')
+
+
 class RecipeSerializer(serializers.ModelSerializer):
     """Отображение рецептов."""
 
     author = UserSerializer(read_only=True)
     tags = TagSerializer(many=True, read_only=True)
-    ingredients = IngredientForRecipeCreateSerializer(
+    ingredients = IngredientForRecipeSerializer(
         many=True,
         read_only=True,
         source='recipe_ingredients'
@@ -157,7 +196,7 @@ class RecipeNewSerializer(serializers.ModelSerializer):
         read_only=True,
         label="Автор"
     )
-    ingredients = IngredientForRecipeSerializer(
+    ingredients = IngredientForRecipeCreateSerializer(
         many=True,
         allow_empty=False,
         label="Ингредиенты",
@@ -222,4 +261,3 @@ class RecipeNewSerializer(serializers.ModelSerializer):
             instance,
             context=self.context
         ).data
-    

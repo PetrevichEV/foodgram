@@ -100,6 +100,7 @@ class IngredientForRecipe(models.Model):
     )
 
     class Meta:
+        default_related_name = 'recipe_ingredients'
         verbose_name = 'Ингредиенты рецепта'
         verbose_name_plural = 'Ингредиенты рецептов'
 
@@ -143,4 +144,3 @@ class ShoppingList(models.Model):
 
     def __str__(self):
         return f'{self.user},{self.recipe}'
-    
