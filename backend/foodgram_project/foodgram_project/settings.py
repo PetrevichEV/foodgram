@@ -38,14 +38,14 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'foodgram_project.urls'
+ROOT_URLCONF = 'api.urls'
 
-TEMPLATES_DIR = BASE_DIR / 'templates'
+# TEMPLATES_DIR = BASE_DIR / 'templates'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [TEMPLATES_DIR],
+        'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -87,7 +87,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-CORS_ALLOWED_ORIGINS = ['http://localhost:3000,']
+# CORS_ALLOWED_ORIGINS = ['http://localhost:3000,']
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 
@@ -104,10 +104,14 @@ USE_TZ = True
 AUTH_USER_MODEL = 'users.User'
 
 STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'collected_static'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'static_backend')
+# STATIC_ROOT = os.path.join(BASE_DIR, 'static_backend')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -128,4 +132,3 @@ SIMPLE_JWT = {
    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
    'AUTH_HEADER_TYPES': ('Bearer',),
 }
- 
