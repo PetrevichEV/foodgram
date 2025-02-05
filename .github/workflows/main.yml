@@ -118,7 +118,7 @@ jobs:
       - name: Push to DockerHub
         uses: docker/build-push-action@v4
         with:
-          context: ./nginx/
+          context: ./gateway/
           push: true
           tags: petrevichev/foodgram_gateway:latest
 
@@ -165,5 +165,4 @@ jobs:
       with:
         to: ${{ secrets.TELEGRAM_TO }}
         token: ${{ secrets.TELEGRAM_TOKEN }}
-        message: Деплой foodgram успешно выполнен! 
-        
+        message: Деплой foodgram успешно выполнен!
