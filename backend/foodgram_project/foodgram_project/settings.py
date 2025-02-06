@@ -6,7 +6,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-7wvme3n)g8n3&r)ve&2frw7x1v88f38em^ua$g+9vw^8=ryjbg'
 
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['localhost', '89.169.163.125', 'foodgrampetrevich.hopto.org']
 
@@ -39,8 +39,6 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'foodgram_project.urls'
-
-# TEMPLATES_DIR = BASE_DIR / 'templates'
 
 TEMPLATES = [
     {
@@ -91,9 +89,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# CORS_ALLOWED_ORIGINS = ['http://localhost:3000,']
-# Internationalization
-# https://docs.djangoproject.com/en/3.2/topics/i18n/
 
 LANGUAGE_CODE = 'ru-RU'
 
@@ -115,7 +110,6 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
 
-# STATIC_ROOT = os.path.join(BASE_DIR, 'static_backend')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

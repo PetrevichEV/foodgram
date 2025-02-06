@@ -41,6 +41,7 @@ User = get_user_model()
 
 FILE_NAME = 'shopping_list.txt'
 
+
 class UserViewSet(DjoserUserViewSet):
     """Вьюсет для управления текущим пользователем."""
 
