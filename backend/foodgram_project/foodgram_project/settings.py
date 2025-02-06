@@ -134,7 +134,7 @@ DJOSER = {
         'user': 'api.serializers.UserSerializer',
         'current_user': 'api.serializers.UserSerializer',
         'user_create': 'api.serializers.UserSerializer',
-        'token_create': 'djoser.serializers.TokenCreateSerializer',        
+        'token_create': 'djoser.serializers.TokenCreateSerializer',
     },
     'PERMISSIONS': {
         'user': ['rest_framework.permissions.IsAuthenticated'],
