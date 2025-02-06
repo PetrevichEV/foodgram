@@ -38,7 +38,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'api.urls'
+ROOT_URLCONF = 'foodgram_project.urls'
 
 # TEMPLATES_DIR = BASE_DIR / 'templates'
 
