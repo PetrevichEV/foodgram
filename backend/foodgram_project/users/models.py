@@ -1,6 +1,8 @@
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+
 
 
 class User(AbstractUser):
@@ -8,7 +10,7 @@ class User(AbstractUser):
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'first_name',
-                       'last_name', 'password']
+                       'last_name']
 
     EMAIL_MAX_LENGTH = 254
     FIELD_MAX_LENGTH = 150
@@ -20,6 +22,8 @@ class User(AbstractUser):
     )
     username = models.CharField(
         _('Юзернейм'),
+        unique=True,
+        validators=[UnicodeUsernameValidator()],
         max_length=FIELD_MAX_LENGTH,
     )
     first_name = models.CharField(
@@ -33,6 +37,7 @@ class User(AbstractUser):
     avatar = models.ImageField(
         _('Аватар'),
         null=True,
+        default=None,
         upload_to='avatars'
     )
 
@@ -64,6 +69,12 @@ class Subscription(models.Model):
         verbose_name = _('Подписка')
         verbose_name_plural = _('Подписки')
         unique_together = ('user', 'author')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'author'],
+                name='unique_follow_model'
+            )
+        ]
 
     def __str__(self):
         return f"Подписка {self.user.username} на {self.author.username}"

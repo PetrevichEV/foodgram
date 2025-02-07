@@ -24,7 +24,7 @@ class UserSerializer(serializers.ModelSerializer):
     """Сериализатор для модели User."""
 
     is_subscribed = serializers.SerializerMethodField()
-    password = serializers.CharField(write_only=True)
+    avatar = Base64ImageField(required=False, allow_null=True)
 
     class Meta:
         model = User
@@ -35,7 +35,9 @@ class UserSerializer(serializers.ModelSerializer):
         """Проверяет, подписан ли текущий пользователь на автора."""
         request = self.context.get('request')
         if request and request.user.is_authenticated:
-            return Subscription.objects.filter(user=request.user, author=obj).exists()
+            return Subscription.objects.filter(
+                user=request.user, author=obj
+                ).exists()
         return False
 
 
@@ -50,28 +52,34 @@ class AvatarSerializer(serializers.ModelSerializer):
 
 
 class SubscriptionNewSerializer(serializers.ModelSerializer):
-    """Cоздание/удаление подписки."""
+    """Cозданиее подписки."""
 
     class Meta:
         model = Subscription
         fields = ('user', 'author')
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Subscription.objects.all(),
-                fields=['user', 'author']
-            )
-        ]
 
-    def create(self, validated_data):
-        """Создает подписку для текущего пользователя."""
-        validated_data['user'] = self.context['request'].user
-        return Subscription.objects.create(**validated_data)
+    def validate(self, data):
+        user, author = data['user'], data['author']
+
+        if user == author:
+            raise serializers.ValidationError(
+                "Вы не можете подписаться на себя."
+                )
+
+        if Subscription.objects.filter(user=user, author=author).exists():
+            raise serializers.ValidationError(
+                "Вы уже подписаны на данного пользователя."
+                )
+
+        return data
 
     def to_representation(self, instance):
-        """Возвращает сериализованные данные автора."""
-        author = instance.author
-        serializer = SubscriptionListSerializer(author, context=self.context)
-        return serializer.data
+        """Возвращаем информацию о пользователе,
+        на которого была создана подписка."""
+        return SubscriptionListSerializer(
+            instance.author,
+            context=self.context
+            ).data
 
 
 class SubscriptionListSerializer(UserSerializer):
@@ -80,27 +88,27 @@ class SubscriptionListSerializer(UserSerializer):
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
 
-    class Meta:
-        model = User
-        fields = UserSerializer.Meta.fields + (
-            'recipes_count',
-            'recipes',
-        )
+    class Meta(UserSerializer.Meta):
+        fields = UserSerializer.Meta.fields + ('recipes_count', 'recipes')
 
     def get_recipes_count(self, obj):
-        """Возвращает количество рецептов автора."""
+        """Подсчет общего количества рецептов пользователя."""
         return obj.recipes.count()
 
     def get_recipes(self, obj):
-        """Возвращает рецепты автора."""
-        queryset = Recipe.objects.filter(author=obj).prefetch_related(
-            'ingredients'
-        )
-        return RecipeSerializer(
-            queryset,
-            many=True,
-            context=self.context
-        ).data
+        """Получение списка рецептов автора с учетом лимита."""
+        queryset = Recipe.objects.filter(author=obj)
+        recipes_limit = self.context.get('request').query_params.get(
+            'recipes_limit'
+            )
+
+        try:
+            if recipes_limit and int(recipes_limit) > 0:
+                queryset = queryset[:int(recipes_limit)]
+        except (ValueError, TypeError):
+            pass
+
+        return RecipeSerializer(queryset, many=True, context=self.context).data
 
 
 class TagSerializer(serializers.ModelSerializer):

@@ -87,53 +87,29 @@ class UserViewSet(DjoserUserViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
-        detail=False,
-        methods=['GET'],
-        permission_classes=[permissions.IsAuthenticated]
+            detail=False,
+            methods=('GET'),
+            permission_classes=(permissions.IsAuthenticated)
     )
     def subscriptions(self, request):
-        """Список подписок текущего пользователя."""
-        current_user = request.user
-        subscribed_users = User.objects.filter(
-            following__user=current_user
-        ).prefetch_related('followers')
-        paginated_users = self.paginate_queryset(subscribed_users)
+        """Получение списка подписок"""
+        queryset = User.objects.filter(following__user=request.user)
+        page = self.paginate_queryset(queryset)
         serializer = SubscriptionListSerializer(
-            paginated_users,
-            many=True,
-            context={'request': request}
-        )
+            page, many=True, context={'request': request})
         return self.get_paginated_response(serializer.data)
 
     @action(
-        detail=True,
-        methods=['POST'],
-        permission_classes=[permissions.IsAuthenticated],
-        url_path="subscribe"
+            detail=True,
+            methods=('POST'),
+            permission_classes=(permissions.IsAuthenticated),
+            url_path='subscribe'
     )
     def subscribe(self, request, id=None):
         """Создание подписки."""
         user_to_follow = get_object_or_404(User, id=id)
-        if request.user == user_to_follow:
-            return Response(
-                {'detail': 'Вы не можете подписаться на самого себя.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        if Subscription.objects.filter(
-            user=request.user, author=user_to_follow
-            ).exists():
-            return Response(
-                {'detail': 'Вы уже подписаны на этого пользователя.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        subscription_data = {
-            'user': request.user.id,
-            'author': user_to_follow.id
-        }
         serializer = SubscriptionNewSerializer(
-            data=subscription_data,
+            data={'user': request.user.id, 'author': user_to_follow.id},
             context={"request": request}
         )
         serializer.is_valid(raise_exception=True)
@@ -144,14 +120,12 @@ class UserViewSet(DjoserUserViewSet):
     def remove_subscription(self, request, id=None):
         """Удаление подписки."""
         user_to_follow = get_object_or_404(User, id=id)
-        current_user = request.user
         deleted_count, _ = Subscription.objects.filter(
-            user=current_user,
-            author=user_to_follow
+            user=request.user, author=user_to_follow
         ).delete()
-        if deleted_count == 0:
+        if not deleted_count:
             return Response(
-                {'detail': 'Вы не подписаны на данного пользователя.'},
+                {'detail': 'Вы не подписаны на пользователя.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
         return Response(status=status.HTTP_204_NO_CONTENT)
