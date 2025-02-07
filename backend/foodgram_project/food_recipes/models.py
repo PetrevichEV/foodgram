@@ -1,10 +1,14 @@
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 from django.contrib.auth import get_user_model
 
 from .validators import validate_slug
 
 User = get_user_model()
+
+MIN_AMOUNT = 1
+MAX_AMOUNT = 32000
 
 class Tag(models.Model):
     """Модель тагов."""
@@ -95,8 +99,9 @@ class IngredientForRecipe(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Рецепт'
     )
-    amount = models.IntegerField(
-        verbose_name='Количество'
+    amount = models.PositiveIntegerField(
+        validators=[MinValueValidator(MIN_AMOUNT),
+                    MaxValueValidator(MAX_AMOUNT)],
     )
 
     class Meta:

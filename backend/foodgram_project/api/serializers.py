@@ -129,9 +129,9 @@ class IngredientSerializer(serializers.ModelSerializer):
 class IngredientForRecipeSerializer(serializers.ModelSerializer):
     """Сериализатор для ингредиента в рецепте."""
 
-    id = serializers.ReadOnlyField(source='ingredient.id')
-    name = serializers.ReadOnlyField(source='ingredient.name')
-    measurement_unit = serializers.ReadOnlyField(
+    id = serializers.IntegerField(source='ingredient.id')
+    name = serializers.CharField(source='ingredient.name')
+    measurement_unit = serializers.CharField(
         source='ingredient.measurement_unit'
     )
 
@@ -144,7 +144,7 @@ class IngredientForRecipeCreateSerializer(serializers.ModelSerializer):
     """Сериализатор для добавления ингредиентов в рецепт."""
 
     id = serializers.PrimaryKeyRelatedField(
-        queryset=Ingredient.objects.all(),
+        queryset=Ingredient.objects.all(), source='ingredient'
     )
     amount = serializers.IntegerField()
 
@@ -155,6 +155,15 @@ class IngredientForRecipeCreateSerializer(serializers.ModelSerializer):
 
 class FavoriteSerializer(serializers.ModelSerializer):
     """Сериализатор для добавления рецептов в избранное."""
+
+    def validate(self, data):
+        user = data['user']
+        recipe = data['recipe']
+        if Favourites.objects.filter(user=user, recipe=recipe).exists():
+            raise serializers.ValidationError(
+                'Рецепт уже в избранном!'
+            )
+        return data
 
     def to_representation(self, instance):
         recipe = instance.recipe
@@ -169,7 +178,16 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
 
 class ShoppingListSerializer(serializers.ModelSerializer):
-    """Сериализатор для добавления рецептов в избранное."""
+    """Сериализатор для добавления рецептов в корзину покупок."""
+
+    def validate(self, data):
+        user = data['user']
+        recipe = data['recipe']
+        if ShoppingList.objects.filter(user=user, recipe=recipe).exists():
+            raise serializers.ValidationError(
+                'Рецепт уже добавлен в корзину покупок!'
+            )
+        return data
 
     def to_representation(self, instance):
         recipe = instance.recipe
