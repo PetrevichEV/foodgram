@@ -270,6 +270,24 @@ class RecipeNewSerializer(serializers.ModelSerializer):
             'author',
         )
 
+    def validate(self, data):
+        if not data.get('tags'):
+            raise serializers.ValidationError('Укажите теги.')
+        if len(set(data['tags'])) != len(data['tags']):
+            raise serializers.ValidationError('Теги не уникальны.')
+
+        if not data.get('ingredients'):
+            raise serializers.ValidationError('Укажите ингредиенты.')
+        ingredient_ids = [i['ingredient'].id for i in data['ingredients']]
+        if len(set(ingredient_ids)) != len(ingredient_ids):
+            raise serializers.ValidationError('Ингредиенты не уникальны.')
+        return data
+
+    def validate_image(self, img):
+        if not img:
+            raise serializers.ValidationError('Нужно изображение.')
+        return img
+
     def add_ingredients(recipe, ingredients):
         """Добавление ингредиентов в рецепт."""
         ingredient_for_recipes = [
