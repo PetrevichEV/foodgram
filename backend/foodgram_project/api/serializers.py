@@ -1,5 +1,5 @@
+from djoser.serializers import UserSerializer as DjoserUserSerializer
 from django.contrib.auth import get_user_model
-from django.db import transaction
 
 from rest_framework import serializers
 
@@ -19,12 +19,24 @@ from users.models import Subscription
 User = get_user_model()
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserSerializer(DjoserUserSerializer):
+
+    is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = ('email', 'username', 'first_name',
-                  'last_name', 'password', 'avatar')
+                  'last_name', 'password', 'avatar',)
+
+    def get_is_subscribed(self, user):
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return False
+        is_subscribed = Subscription.objects.filter(
+            user=request.user,
+            author=user
+        ).exists()
+        return is_subscribed
 
 
 class AvatarSerializer(serializers.ModelSerializer):
@@ -109,7 +121,7 @@ class IngredientForRecipeCreateSerializer(serializers.ModelSerializer):
     """Сериализатор для добавления ингредиентов в рецепт."""
 
     id = serializers.PrimaryKeyRelatedField(
-        queryset=Ingredient.objects.all(), 
+        queryset=Ingredient.objects.all(),
     )
     amount = serializers.IntegerField()
 
