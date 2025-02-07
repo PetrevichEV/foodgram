@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 
 class User(AbstractUser):
@@ -9,33 +10,36 @@ class User(AbstractUser):
     REQUIRED_FIELDS = ['username', 'first_name',
                        'last_name', 'password']
 
+    EMAIL_MAX_LENGTH = 254
+    FIELD_MAX_LENGTH = 150
+
     email = models.EmailField(
-        'Электронная почта',
+        _('Электронная почта'),
         unique=True,
-        max_length=254
+        max_length=EMAIL_MAX_LENGTH
     )
     username = models.CharField(
-        'Юзернейм',
-        max_length=150,
+        _('Юзернейм'),
+        max_length=FIELD_MAX_LENGTH,
     )
     first_name = models.CharField(
-        'Имя',
-        max_length=150
+        _('Имя'),
+        max_length=FIELD_MAX_LENGTH
     )
     last_name = models.CharField(
-        'Фамилия',
-        max_length=150
+        _('Фамилия'),
+        max_length=FIELD_MAX_LENGTH
     )
     avatar = models.ImageField(
-        verbose_name='Аватар',
+        _('Аватар'),
         null=True,
         upload_to='avatars'
     )
 
     class Meta:
         ordering = ('username',)
-        verbose_name = 'Пользователь'
-        verbose_name_plural = 'Пользователи'
+        verbose_name = _('Пользователь')
+        verbose_name_plural = _('Пользователи')
 
     def __str__(self):
         return self.username
@@ -46,19 +50,20 @@ class Subscription(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='follower',
-        verbose_name='Подписчик'
+        related_name='following',
+        verbose_name=_('Подписчик')
     )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='following',
-        verbose_name='Автор'
+        related_name='followers',
+        verbose_name=_('Автор')
     )
 
     class Meta:
-        verbose_name = 'Подписка'
-        verbose_name_plural = 'Подписки'
+        verbose_name = _('Подписка')
+        verbose_name_plural = _('Подписки')
+        unique_together = ('user', 'author')
 
     def __str__(self):
-        return self.user
+        return f"Подписка {self.user.username} на {self.author.username}"

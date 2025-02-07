@@ -47,7 +47,7 @@ class UserViewSet(DjoserUserViewSet):
 
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = (permissions.IsAuthenticated,)
     pagination_class = PagePaginator
 
     @action(
@@ -82,7 +82,8 @@ class UserViewSet(DjoserUserViewSet):
     def delete_avatar(self, request):
         """Удаление аватара."""
         user = self.request.user
-        user.avatar.delete()
+        if user.avatar:
+            user.avatar.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
@@ -91,11 +92,11 @@ class UserViewSet(DjoserUserViewSet):
         permission_classes=[permissions.IsAuthenticated]
     )
     def subscriptions(self, request):
-        """Подписки"""
+        """Список подписок текущего пользователя."""
         current_user = request.user
         subscribed_users = User.objects.filter(
             following__user=current_user
-        )
+        ).prefetch_related('followers')
         paginated_users = self.paginate_queryset(subscribed_users)
         serializer = SubscriptionListSerializer(
             paginated_users,
@@ -113,6 +114,20 @@ class UserViewSet(DjoserUserViewSet):
     def subscribe(self, request, id=None):
         """Создание подписки."""
         user_to_follow = get_object_or_404(User, id=id)
+        if request.user == user_to_follow:
+            return Response(
+                {'detail': 'Вы не можете подписаться на самого себя.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if Subscription.objects.filter(
+            user=request.user, author=user_to_follow
+            ).exists():
+            return Response(
+                {'detail': 'Вы уже подписаны на этого пользователя.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         subscription_data = {
             'user': request.user.id,
             'author': user_to_follow.id
@@ -134,7 +149,7 @@ class UserViewSet(DjoserUserViewSet):
             user=current_user,
             author=user_to_follow
         ).delete()
-        if not deleted_count:
+        if deleted_count == 0:
             return Response(
                 {'detail': 'Вы не подписаны на данного пользователя.'},
                 status=status.HTTP_400_BAD_REQUEST

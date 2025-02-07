@@ -1,7 +1,8 @@
-from djoser.serializers import UserSerializer as DjoserUserSerializer
+from djoser.serializers import UserSerializer
 from django.contrib.auth import get_user_model
 
 from rest_framework import serializers
+from rest_framework.validators import UniqueTogetherValidator
 
 from drf_base64.fields import Base64ImageField
 
@@ -19,33 +20,33 @@ from users.models import Subscription
 User = get_user_model()
 
 
-class UserSerializer(DjoserUserSerializer):
+class UserSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели User."""
 
     is_subscribed = serializers.SerializerMethodField()
+    password = serializers.CharField(write_only=True)
 
     class Meta:
         model = User
         fields = ('email', 'username', 'first_name',
-                  'last_name', 'password', 'avatar',)
+                  'last_name', 'password', 'avatar', 'is_subscribed')
 
-    def get_is_subscribed(self, user):
+    def get_is_subscribed(self, obj):
+        """Проверяет, подписан ли текущий пользователь на автора."""
         request = self.context.get('request')
-        if not request or not request.user.is_authenticated:
-            return False
-        is_subscribed = Subscription.objects.filter(
-            user=request.user,
-            author=user
-        ).exists()
-        return is_subscribed
+        if request and request.user.is_authenticated:
+            return Subscription.objects.filter(user=request.user, author=obj).exists()
+        return False
 
 
 class AvatarSerializer(serializers.ModelSerializer):
+    """Сериализатор для обновления аватара пользователя."""
 
     avatar = Base64ImageField(allow_null=True)
 
     class Meta:
         model = User
-        fields = ('avatar', )
+        fields = ('avatar',)
 
 
 class SubscriptionNewSerializer(serializers.ModelSerializer):
@@ -54,8 +55,20 @@ class SubscriptionNewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscription
         fields = ('user', 'author')
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Subscription.objects.all(),
+                fields=['user', 'author']
+            )
+        ]
+
+    def create(self, validated_data):
+        """Создает подписку для текущего пользователя."""
+        validated_data['user'] = self.context['request'].user
+        return Subscription.objects.create(**validated_data)
 
     def to_representation(self, instance):
+        """Возвращает сериализованные данные автора."""
         author = instance.author
         serializer = SubscriptionListSerializer(author, context=self.context)
         return serializer.data
@@ -80,7 +93,9 @@ class SubscriptionListSerializer(UserSerializer):
 
     def get_recipes(self, obj):
         """Возвращает рецепты автора."""
-        queryset = Recipe.objects.filter(author=obj)
+        queryset = Recipe.objects.filter(author=obj).prefetch_related(
+            'ingredients'
+        )
         return RecipeSerializer(
             queryset,
             many=True,
