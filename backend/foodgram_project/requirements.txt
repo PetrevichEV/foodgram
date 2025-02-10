@@ -14,3 +14,4 @@ gunicorn
 flake8
 flake8-isort
 shortuuid
+drf-base64

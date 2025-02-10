@@ -152,12 +152,12 @@ class ShoppingList(models.Model):
     def __str__(self):
         return f'{self.user},{self.recipe}'
 
-class ShortLink(models.Model):
-    title = models.CharField(max_length=200)
-    short_link = models.UUIDField(unique=True, editable=False, default=uuid.uuid4)
+# class ShortLink(models.Model):
+#     title = models.CharField(max_length=200)
+#     short_link = models.UUIDField(unique=True, editable=False, default=uuid.uuid4)
 
-    def get_absolute_url(self):
-        return reverse('recipes-detail', args=[str(self.id)])
+#     def get_absolute_url(self):
+#         return reverse('recipes-detail', args=[str(self.id)])
 
-    def __str__(self):
-        return self.title
+#     def __str__(self):
+#         return self.title
