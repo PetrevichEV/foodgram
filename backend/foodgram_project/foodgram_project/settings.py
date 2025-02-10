@@ -125,15 +125,17 @@ REST_FRAMEWORK = {
 
 DJOSER = {
     'LOGIN_FIELD': 'email',
+    'USER_ID_FIELD': 'id',
+    'HIDE_USERS': False,    
     
     'PERMISSIONS': {
         'user_list': ('rest_framework.permissions.AllowAny',),
         'user': ('rest_framework.permissions.IsAuthenticated'),
     },
+
     'SERIALIZERS': {
         'user': 'api.serializers.UserSerializer',
         'current_user': 'api.serializers.UserSerializer',
         'user_create': 'api.serializers.UserCreateSerializer',
-        'token_create': 'djoser.serializers.TokenCreateSerializer',
     },
 }
