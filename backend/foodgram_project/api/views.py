@@ -2,6 +2,9 @@ from django.contrib.auth import get_user_model
 from django.db.models import Exists, F, OuterRef, Sum
 from django.http import FileResponse
 
+from django.shortcuts import get_object_or_404, redirect
+from django.views.generic import RedirectView
+
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
@@ -285,3 +288,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+class ShortLink(RedirectView):
+    """Вьюсет для короткой ссылки."""
+    permanent = False
+    query_string = True
+
+    def get_redirect_url(self, *args, **kwargs):
+        obj = get_object_or_404(Recipe, short_link=kwargs['short_link'])
+        return self.request.build_absolute_uri(obj.get_absolute_url())

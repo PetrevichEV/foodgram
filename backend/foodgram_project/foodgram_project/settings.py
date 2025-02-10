@@ -9,6 +9,8 @@ DEBUG = False
 
 ALLOWED_HOSTS = ['localhost', '89.169.163.125', 'foodgrampetrevich.hopto.org']
 
+CSRF_COOKIE_SECURE = True
+
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 5000
 
 INSTALLED_APPS = [
@@ -108,7 +110,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
 
 
-# DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
