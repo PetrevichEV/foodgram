@@ -1,4 +1,4 @@
-from djoser.serializers import UserSerializer
+from djoser.serializers import UserCreateSerializer
 from django.contrib.auth import get_user_model
 
 from rest_framework import serializers
@@ -37,8 +37,28 @@ class UserSerializer(serializers.ModelSerializer):
         if request and request.user.is_authenticated:
             return Subscription.objects.filter(
                 user=request.user, author=obj
-                ).exists()
+            ).exists()
         return False
+
+
+class CustomUserCreateSerializer(UserCreateSerializer):
+    """Сериализатор для создания пользователя."""
+
+    avatar = Base64ImageField(required=False, allow_null=True)
+
+    class Meta(UserCreateSerializer.Meta):
+        model = User
+        fields = ('email', 'username', 'first_name',
+                  'last_name', 'password', 'avatar')
+
+    def create(self, validated_data):
+        """Создаем пользователя с учетом аватара."""
+        avatar = validated_data.pop('avatar', None)
+        user = User.objects.create_user(**validated_data)
+        if avatar:
+            user.avatar = avatar
+            user.save()
+        return user
 
 
 class AvatarSerializer(serializers.ModelSerializer):
@@ -64,12 +84,12 @@ class SubscriptionNewSerializer(serializers.ModelSerializer):
         if user == author:
             raise serializers.ValidationError(
                 "Вы не можете подписаться на себя."
-                )
+            )
 
         if Subscription.objects.filter(user=user, author=author).exists():
             raise serializers.ValidationError(
                 "Вы уже подписаны на данного пользователя."
-                )
+            )
 
         return data
 
@@ -79,7 +99,7 @@ class SubscriptionNewSerializer(serializers.ModelSerializer):
         return SubscriptionListSerializer(
             instance.author,
             context=self.context
-            ).data
+        ).data
 
 
 class SubscriptionListSerializer(UserSerializer):
@@ -100,7 +120,7 @@ class SubscriptionListSerializer(UserSerializer):
         queryset = Recipe.objects.filter(author=obj)
         recipes_limit = self.context.get('request').query_params.get(
             'recipes_limit'
-            )
+        )
 
         try:
             if recipes_limit and int(recipes_limit) > 0:
