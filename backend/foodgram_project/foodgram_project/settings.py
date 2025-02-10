@@ -126,7 +126,7 @@ REST_FRAMEWORK = {
 DJOSER = {
     'LOGIN_FIELD': 'email',
     'USER_ID_FIELD': 'id',
-    'HIDE_USERS': False,    
+    'HIDE_USERS': False,
     
     'PERMISSIONS': {
         'user_list': ('rest_framework.permissions.AllowAny',),
