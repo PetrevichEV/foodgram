@@ -2,7 +2,7 @@ from djoser.serializers import UserCreateSerializer
 from django.contrib.auth import get_user_model
 
 from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator
+# from rest_framework.validators import UniqueTogetherValidator
 
 from drf_base64.fields import Base64ImageField
 
@@ -41,7 +41,7 @@ class UserSerializer(serializers.ModelSerializer):
         return False
 
 
-class CustomUserCreateSerializer(UserCreateSerializer):
+class UserCreateSerializer(UserCreateSerializer):
     """Сериализатор для создания пользователя."""
 
     avatar = Base64ImageField(required=False, allow_null=True)
