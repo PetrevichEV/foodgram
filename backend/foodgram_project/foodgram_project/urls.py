@@ -8,7 +8,7 @@ from api.views import ShortLink
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
-    path('s/<str:short_link>/', ShortLink.as_view()),
+    path('s/<uuid:short_link>/', ShortLink.as_view()),
 ]
 
 if settings.DEBUG:

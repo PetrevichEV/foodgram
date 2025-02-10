@@ -40,6 +40,8 @@ class UserSerializer(serializers.ModelSerializer):
             ).exists()
         return False
 
+    def create(self, validated_data):
+        return User.objects.create_user(**validated_data)
 
 class UserCreateSerializer(UserCreateSerializer):
     """Сериализатор для создания пользователя."""

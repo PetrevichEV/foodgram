@@ -292,8 +292,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
 class ShortLink(RedirectView):
     """Вьюсет для короткой ссылки."""
     permanent = False
-    query_string = True
+    query_string = False
 
     def get_redirect_url(self, *args, **kwargs):
         obj = get_object_or_404(Recipe, short_link=kwargs['short_link'])
-        return self.request.build_absolute_uri(obj.get_absolute_url())
+        return obj.get_absolute_url()
