@@ -189,7 +189,7 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         recipe = instance.recipe
-        serializer = RecipeSerializer(
+        serializer = SimpleRecipeSerializer(
             recipe, context=self.context
         )
         return serializer.data
@@ -198,7 +198,14 @@ class FavoriteSerializer(serializers.ModelSerializer):
         model = Favourites
         fields = ('user', 'recipe')
 
+class SimpleRecipeSerializer(serializers.ModelSerializer):
+    """Сериализатор рецептов пользователя."""
 
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name',
+                  'image', 'cooking_time')
+        
 class ShoppingListSerializer(serializers.ModelSerializer):
     """Сериализатор для добавления рецептов в корзину покупок."""
 
@@ -213,7 +220,7 @@ class ShoppingListSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         recipe = instance.recipe
-        serializer = RecipeSerializer(
+        serializer = SimpleRecipeSerializer(
             recipe, context=self.context
         )
         return serializer.data
@@ -310,6 +317,7 @@ class RecipeNewSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Нужно изображение.')
         return img
 
+    @staticmethod
     def add_ingredients(recipe, ingredients):
         """Добавление ингредиентов в рецепт."""
         ingredient_for_recipes = [
@@ -324,6 +332,7 @@ class RecipeNewSerializer(serializers.ModelSerializer):
             ingredient_for_recipes
         )
 
+    @transaction.atomic
     def create(self, validated_data):
         """Создание рецепта."""
         tags = validated_data.pop('tags')
@@ -337,6 +346,7 @@ class RecipeNewSerializer(serializers.ModelSerializer):
         self.add_ingredients(recipe, ingredients)
         return recipe
 
+    @transaction.atomic
     def update(self, instance, validated_data):
         """Обновление рецепта."""
         ingredients = validated_data.pop('ingredients')

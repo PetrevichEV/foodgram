@@ -90,9 +90,9 @@ class UserViewSet(DjoserUserViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
-            detail=False,
-            methods=('GET'),
-            permission_classes=(permissions.IsAuthenticated)
+        detail=False,
+        methods=('GET'),
+        permission_classes=(permissions.IsAuthenticated)
     )
     def subscriptions(self, request):
         """Получение списка подписок"""
@@ -103,10 +103,10 @@ class UserViewSet(DjoserUserViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(
-            detail=True,
-            methods=('POST'),
-            permission_classes=(permissions.IsAuthenticated),
-            url_path='subscribe'
+        detail=True,
+        methods=('POST'),
+        permission_classes=(permissions.IsAuthenticated),
+        url_path='subscribe'
     )
     def subscribe(self, request, id=None):
         """Создание подписки."""
@@ -159,12 +159,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filterset_class = RecipeFilter
     http_method_names = ('get', 'post', 'patch', 'delete')
 
-    def get_serializer_class(self):
-        """Определение сериализатора для текущего действия."""
-        if self.action == 'list' or self.action == 'retrieve':
-            return RecipeSerializer
-        return RecipeNewSerializer
-
     def _annotate_favorite(self, queryset, user):
         """Добавляем поле is_favorited."""
         return queryset.annotate(
@@ -203,11 +197,18 @@ class RecipeViewSet(viewsets.ModelViewSet):
             )
         return queryset
 
-    @action(detail=True, methods=('post',),
+    def get_serializer_class(self):
+        """Определение сериализатора для текущего действия."""
+        if self.action == 'list' or self.action == 'retrieve':
+            return RecipeSerializer
+        return RecipeNewSerializer
+
+    @action(detail=True,
+            methods=('post',),
             permission_classes=(permissions.IsAuthenticated,))
     def favorite(self, request, pk=None):
         """Добавляет рецепт в избранное."""
-        return self._handle_favorite_or_cart(request, pk, FavoriteSerializer)
+        return self.handle_favorite_or_cart(request, pk, FavoriteSerializer)
 
     @favorite.mapping.delete
     def delete_favorite(self, request, pk=None):
@@ -225,7 +226,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             permission_classes=(permissions.IsAuthenticated,))
     def shopping_cart(self, request, pk=None):
         """Добавляет рецепт в корзину покупок."""
-        return self._handle_favorite_or_cart(
+        return self.handle_favorite_or_cart(
             request, pk, ShoppingListSerializer
         )
 
@@ -267,7 +268,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         response['Content-Disposition'] = f'attachment; filename="{FILE_NAME}"'
         return response
 
-    @action(detail=True, methods=('get',),
+    @action(detail=True,
+            methods=('get',),
             url_path='get-link')
     def get_link(self, request, pk=None):
         """Генерирует короткую ссылку на рецепт."""
@@ -278,7 +280,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         short_link = request.build_absolute_uri(short_url_path)
         return Response({'short-link': short_link}, status=status.HTTP_200_OK)
 
-    def _handle_favorite_or_cart(self, request, pk, serializer_class):
+    def handle_favorite_or_cart(self, request, pk, serializer_class):
         """Внутренний метод для добавления рецепта в избранное или корзину."""
         recipe = get_object_or_404(Recipe, id=pk)
         serializer = serializer_class(
@@ -288,12 +290,3 @@ class RecipeViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-class ShortLink(RedirectView):
-    """Вьюсет для короткой ссылки."""
-    permanent = False
-    query_string = False
-
-    def get_redirect_url(self, *args, **kwargs):
-        obj = get_object_or_404(Recipe, short_link=kwargs['short_link'])
-        return obj.get_absolute_url()
