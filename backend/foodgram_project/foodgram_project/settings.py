@@ -7,10 +7,7 @@ SECRET_KEY = 'django-insecure-7wvme3n)g8n3&r)ve&2frw7x1v88f38em^ua$g+9vw^8=ryjbg
 
 DEBUG = False
 
-if DEBUG:
-    ALLOWED_HOSTS = []
-else:
-    ALLOWED_HOSTS = ['localhost', '89.169.163.125', 'foodgrampetrevich.hopto.org']
+ALLOWED_HOSTS = ['localhost', '89.169.163.125', 'foodgrampetrevich.hopto.org']
 
 CSRF_COOKIE_SECURE = True
 
