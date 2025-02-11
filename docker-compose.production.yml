@@ -17,7 +17,6 @@ services:
     volumes:
       - static:/backend_static
       - media:/app/media
-      - ./data:/app/data
     depends_on:
       - db
   frontend:
@@ -35,4 +34,6 @@ services:
       - 8000:80
     volumes:
       - static:/staticfiles/
-      - ./docs:/usr/share/nginx/html/api/docs/
+      - media:/app/media
+    depends_on:
+      - backend
