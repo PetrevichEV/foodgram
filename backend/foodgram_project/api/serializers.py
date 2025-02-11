@@ -1,9 +1,8 @@
 from django.db import transaction
-from djoser.serializers import UserCreateSerializer
 from django.contrib.auth import get_user_model
 
 from rest_framework import serializers
-# from rest_framework.validators import UniqueTogetherValidator
+
 
 from drf_base64.fields import Base64ImageField
 
@@ -31,6 +30,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ('email', 'username', 'first_name',
                   'last_name', 'password', 'avatar', 'is_subscribed')
+        extra_kwargs = {'password': {'write_only': True}}
 
     def get_is_subscribed(self, obj):
         """Проверяет, подписан ли текущий пользователь на автора."""
@@ -42,19 +42,6 @@ class UserSerializer(serializers.ModelSerializer):
         return False
 
     def create(self, validated_data):
-        return User.objects.create_user(**validated_data)
-
-class UserCreateSerializer(UserCreateSerializer):
-    """Сериализатор для создания пользователя."""
-
-    avatar = Base64ImageField(required=False, allow_null=True)
-
-    class Meta(UserCreateSerializer.Meta):
-        model = User
-        fields = ('email', 'username', 'first_name',
-                  'last_name', 'password', 'avatar')
-
-    def create(self, validated_data):
         """Создаем пользователя с учетом аватара."""
         avatar = validated_data.pop('avatar', None)
         user = User.objects.create_user(**validated_data)
@@ -64,18 +51,10 @@ class UserCreateSerializer(UserCreateSerializer):
         return user
 
 
-class AvatarSerializer(serializers.ModelSerializer):
-    """Сериализатор для обновления аватара пользователя."""
-
-    avatar = Base64ImageField(allow_null=True)
-
-    class Meta:
-        model = User
-        fields = ('avatar',)
-
-
 class SubscriptionNewSerializer(serializers.ModelSerializer):
     """Cозданиее подписки."""
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    author = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
 
     class Meta:
         model = Subscription
@@ -120,8 +99,9 @@ class SubscriptionListSerializer(UserSerializer):
 
     def get_recipes(self, obj):
         """Получение списка рецептов автора с учетом лимита."""
+        request = self.context.get('request')
         queryset = Recipe.objects.filter(author=obj)
-        recipes_limit = self.context.get('request').query_params.get(
+        recipes_limit = request.query_params.get(
             'recipes_limit'
         )
 
@@ -131,7 +111,7 @@ class SubscriptionListSerializer(UserSerializer):
         except (ValueError, TypeError):
             pass
 
-        return RecipeSerializer(queryset, many=True, context=self.context).data
+        return []
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -199,6 +179,7 @@ class FavoriteSerializer(serializers.ModelSerializer):
         model = Favourites
         fields = ('user', 'recipe')
 
+
 class SimpleRecipeSerializer(serializers.ModelSerializer):
     """Сериализатор рецептов пользователя."""
 
@@ -206,7 +187,8 @@ class SimpleRecipeSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = ('id', 'name',
                   'image', 'cooking_time')
-        
+
+
 class ShoppingListSerializer(serializers.ModelSerializer):
     """Сериализатор для добавления рецептов в корзину покупок."""
 

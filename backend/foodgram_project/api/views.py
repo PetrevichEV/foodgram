@@ -2,8 +2,7 @@ from django.contrib.auth import get_user_model
 from django.db.models import Exists, F, OuterRef, Sum
 from django.http import FileResponse
 
-from django.shortcuts import get_object_or_404, redirect
-from django.views.generic import RedirectView
+from django.shortcuts import get_object_or_404
 
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
@@ -18,7 +17,6 @@ from .filters import IngredientFilter, RecipeFilter
 from .pagination import PagePaginator
 from .permissions import IsOwnerOrReadOnly
 from .serializers import (
-    AvatarSerializer,
     IngredientSerializer,
     IngredientForRecipe,
     RecipeNewSerializer,
@@ -48,7 +46,6 @@ FILE_NAME = 'shopping_list.txt'
 class UserViewSet(DjoserUserViewSet):
     """Вьюсет для управления текущим пользователем."""
 
-    queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (permissions.IsAuthenticated,)
     pagination_class = PagePaginator
@@ -56,7 +53,6 @@ class UserViewSet(DjoserUserViewSet):
     @action(
         detail=False,
         methods=('get',),
-        permission_classes=(permissions.IsAuthenticated,)
     )
     def me(self, request):
         """Отражение текущего пользователя."""
@@ -68,11 +64,10 @@ class UserViewSet(DjoserUserViewSet):
         detail=False,
         methods=('put',),
         url_path='me/avatar',
-        permission_classes=(permissions.IsAuthenticated,)
     )
     def avatar(self, request):
         """Добавление/обновление аватара."""
-        serializer = AvatarSerializer(
+        serializer = UserSerializer(
             request.user,
             data=request.data,
             partial=True
@@ -87,12 +82,13 @@ class UserViewSet(DjoserUserViewSet):
         user = self.request.user
         if user.avatar:
             user.avatar.delete()
+        user.avatar = None
+        user.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
         detail=False,
-        methods=('GET'),
-        permission_classes=(permissions.IsAuthenticated)
+        methods=('GET',)
     )
     def subscriptions(self, request):
         """Получение списка подписок"""
@@ -105,7 +101,6 @@ class UserViewSet(DjoserUserViewSet):
     @action(
         detail=True,
         methods=('POST'),
-        permission_classes=(permissions.IsAuthenticated),
         url_path='subscribe'
     )
     def subscribe(self, request, id=None):
