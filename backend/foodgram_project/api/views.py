@@ -25,6 +25,7 @@ from .serializers import (
     SubscriptionNewSerializer,
     TagSerializer,
     UserSerializer,
+    UserMeSerializer,
     FavoriteSerializer,
     ShoppingListSerializer,
 )
@@ -57,7 +58,7 @@ class UserViewSet(DjoserUserViewSet):
     def me(self, request):
         """Отражение текущего пользователя."""
         user = request.user
-        serializer = UserSerializer(user)
+        serializer = UserMeSerializer(user)
         return Response(serializer.data)
 
     @action(

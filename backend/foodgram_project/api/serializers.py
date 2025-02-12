@@ -50,6 +50,17 @@ class UserSerializer(serializers.ModelSerializer):
             user.save()
         return user
 
+class UserMeSerializer(serializers.ModelSerializer):
+    """Сериализатор для отображения пользователя."""
+
+    is_subscribed = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            'email', 'id', 'username', 'first_name',
+            'last_name', 'is_subscribed', 'avatar'
+        )
 
 class SubscriptionNewSerializer(serializers.ModelSerializer):
     """Cозданиее подписки."""
@@ -305,7 +316,8 @@ class RecipeNewSerializer(serializers.ModelSerializer):
         if not img:
             raise serializers.ValidationError('Нужно изображение.')
         return img
-
+    
+    @staticmethod
     def add_ingredients(recipe, ingredients):
         """Добавление ингредиентов в рецепт."""
         ingredient_for_recipes = [
