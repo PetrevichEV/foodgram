@@ -1,7 +1,7 @@
 from django.db import models
 from django.urls import reverse
 
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MinValueValidator
 
 from django.contrib.auth import get_user_model
 
@@ -10,7 +10,6 @@ from .validators import validate_slug
 User = get_user_model()
 
 MIN_AMOUNT = 1
-MAX_AMOUNT = 32000
 
 class Tag(models.Model):
     """Модель тагов."""
@@ -65,6 +64,7 @@ class Recipe(models.Model):
         verbose_name='Описание рецепта'
     )
     cooking_time = models.PositiveIntegerField(
+        validators=[MinValueValidator(MIN_AMOUNT)],
         verbose_name='Время приготовления'
     )
     ingredients = models.ManyToManyField(
@@ -101,9 +101,8 @@ class IngredientForRecipe(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Рецепт'
     )
-    amount = models.PositiveIntegerField(
-        validators=[MinValueValidator(MIN_AMOUNT),
-                    MaxValueValidator(MAX_AMOUNT)],
+    amount = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(MIN_AMOUNT)],
     )
 
     class Meta:
@@ -151,13 +150,3 @@ class ShoppingList(models.Model):
 
     def __str__(self):
         return f'{self.user},{self.recipe}'
-
-# class ShortLink(models.Model):
-#     title = models.CharField(max_length=200)
-#     short_link = models.UUIDField(unique=True, editable=False, default=uuid.uuid4)
-
-#     def get_absolute_url(self):
-#         return reverse('recipes-detail', args=[str(self.id)])
-
-#     def __str__(self):
-#         return self.title

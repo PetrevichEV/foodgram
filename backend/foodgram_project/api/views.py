@@ -152,6 +152,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     permission_classes = (IsOwnerOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
+    pagination_class = PagePaginator    
     http_method_names = ('get', 'post', 'patch', 'delete')
 
     def _annotate_favorite(self, queryset, user):
