@@ -289,12 +289,16 @@ class RecipeNewSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, data):
+        if not data.get('tags'):
+            raise serializers.ValidationError('Укажите теги.')
         if len(set(data['tags'])) != len(data['tags']):
             raise serializers.ValidationError('Теги не уникальны.')
 
-        if len(set(data['ingredients'])) != len(data['ingredients']):
+        if not data.get('ingredients'):
+            raise serializers.ValidationError('Укажите ингредиенты.')
+        ingredient_ids = [i['ingredient'].id for i in data['ingredients']]
+        if len(set(ingredient_ids)) != len(ingredient_ids):
             raise serializers.ValidationError('Ингредиенты не уникальны.')
-
         return data
 
     def validate_image(self, img):
@@ -302,6 +306,7 @@ class RecipeNewSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Нужно изображение.')
         return img
 
+    @staticmethod
     def add_ingredients(recipe, ingredients):
         """Добавление ингредиентов в рецепт."""
         ingredient_for_recipes = [
@@ -316,10 +321,11 @@ class RecipeNewSerializer(serializers.ModelSerializer):
             ingredient_for_recipes
         )
 
+    @transaction.atomic
     def create(self, validated_data):
         """Создание рецепта."""
         tags = validated_data.pop('tags')
-        ingredients = validated_data.pop('recipe_ingredients')
+        ingredients = validated_data.pop('ingredients')
         current_user = self.context['request'].user
         recipe = Recipe.objects.create(
             author=current_user,
@@ -329,6 +335,7 @@ class RecipeNewSerializer(serializers.ModelSerializer):
         self.add_ingredients(recipe, ingredients)
         return recipe
 
+    @transaction.atomic
     def update(self, instance, validated_data):
         """Обновление рецепта."""
         ingredients = validated_data.pop('ingredients')
