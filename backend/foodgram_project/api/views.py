@@ -61,7 +61,7 @@ class UserViewSet(DjoserUserViewSet):
         return Response(serializer.data)
 
     @action(
-        detail=False,G
+        detail=False,
         methods=('put',),
         url_path='me/avatar',
     )
