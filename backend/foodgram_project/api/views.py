@@ -25,7 +25,6 @@ from .serializers import (
     SubscriptionNewSerializer,
     TagSerializer,
     UserSerializer,
-    UserMeSerializer,
     FavoriteSerializer,
     ShoppingListSerializer,
 )
@@ -58,7 +57,7 @@ class UserViewSet(DjoserUserViewSet):
     def me(self, request):
         """Отражение текущего пользователя."""
         user = request.user
-        serializer = UserMeSerializer(user)
+        serializer = UserSerializer(user)
         return Response(serializer.data)
 
     @action(
@@ -153,7 +152,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     permission_classes = (IsOwnerOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
-    pagination_class = PagePaginator    
+    pagination_class = PagePaginator
     http_method_names = ('get', 'post', 'patch', 'delete')
 
     def _annotate_favorite(self, queryset, user):

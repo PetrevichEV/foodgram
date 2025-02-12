@@ -50,17 +50,17 @@ class UserSerializer(serializers.ModelSerializer):
             user.save()
         return user
 
-class UserMeSerializer(serializers.ModelSerializer):
-    """Сериализатор для отображения пользователя."""
+# class UserMeSerializer(serializers.ModelSerializer):
+#     """Сериализатор для отображения пользователя."""
 
-    is_subscribed = serializers.SerializerMethodField()
+#     is_subscribed = serializers.SerializerMethodField()
 
-    class Meta:
-        model = User
-        fields = (
-            'email', 'id', 'username', 'first_name',
-            'last_name', 'is_subscribed', 'avatar'
-        )
+#     class Meta:
+#         model = User
+#         fields = (
+#             'email', 'id', 'username', 'first_name',
+#             'last_name', 'is_subscribed', 'avatar'
+#         )
 
 class SubscriptionNewSerializer(serializers.ModelSerializer):
     """Cозданиее подписки."""
@@ -331,7 +331,7 @@ class RecipeNewSerializer(serializers.ModelSerializer):
         IngredientForRecipe.objects.bulk_create(
             ingredient_for_recipes
         )
-        
+
     @transaction.atomic
     def create(self, validated_data):
         """Создание рецепта."""
