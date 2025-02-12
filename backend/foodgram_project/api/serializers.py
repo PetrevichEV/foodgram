@@ -254,17 +254,6 @@ class RecipeSerializer(serializers.ModelSerializer):
             return ShoppingList.objects.filter(user=user, recipe=obj).exists()
         return False
 
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-
-        representation['tags'] = TagSerializer(
-            instance.tags.all(), many=True).data
-
-        representation['author'] = UserSerializer(
-            instance.author, context=self.context).data
-
-        return representation
-
 
 class RecipeNewSerializer(serializers.ModelSerializer):
     """Создание рецептов."""
