@@ -143,17 +143,17 @@ class IngredientForRecipeSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'measurement_unit', 'amount')
 
 
-# class IngredientForRecipeCreateSerializer(serializers.ModelSerializer):
-#     """Сериализатор для добавления ингредиентов в рецепт."""
+class IngredientForRecipeCreateSerializer(serializers.ModelSerializer):
+    """Сериализатор для добавления ингредиентов в рецепт."""
 
-#     id = serializers.PrimaryKeyRelatedField(
-#         queryset=Ingredient.objects.all(), source='ingredient'
-#     )
-#     amount = serializers.IntegerField()
+    id = serializers.PrimaryKeyRelatedField(
+        queryset=Ingredient.objects.all(), source='ingredient'
+    )
+    amount = serializers.IntegerField()
 
-#     class Meta:
-#         model = IngredientForRecipe
-#         fields = ('id', 'amount')
+    class Meta:
+        model = IngredientForRecipe
+        fields = ('id', 'amount')
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
@@ -268,17 +268,17 @@ class RecipeNewSerializer(serializers.ModelSerializer):
         read_only=True,
         label="Автор"
     )
-    ingredients = serializers.PrimaryKeyRelatedField(
+    ingredients = IngredientForRecipeCreateSerializer(
         many=True,
-        queryset=Ingredient.objects.all(),
         allow_empty=False,
-        label="Ингредиенты"
+        label="Ингредиенты",
     )
     image = Base64ImageField(label="Изображение")
 
     class Meta:
         model = Recipe
         fields = (
+            'id',
             'ingredients',
             'tags',
             'image',
@@ -287,7 +287,6 @@ class RecipeNewSerializer(serializers.ModelSerializer):
             'cooking_time',
             'author',
         )
-        read_only_fields = ('author',)
 
     def validate(self, data):
         if len(set(data['tags'])) != len(data['tags']):
@@ -303,7 +302,6 @@ class RecipeNewSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Нужно изображение.')
         return img
 
-    @staticmethod
     def add_ingredients(recipe, ingredients):
         """Добавление ингредиентов в рецепт."""
         ingredient_for_recipes = [
@@ -318,7 +316,6 @@ class RecipeNewSerializer(serializers.ModelSerializer):
             ingredient_for_recipes
         )
 
-    @transaction.atomic
     def create(self, validated_data):
         """Создание рецепта."""
         tags = validated_data.pop('tags')
@@ -332,7 +329,6 @@ class RecipeNewSerializer(serializers.ModelSerializer):
         self.add_ingredients(recipe, ingredients)
         return recipe
 
-    @transaction.atomic
     def update(self, instance, validated_data):
         """Обновление рецепта."""
         ingredients = validated_data.pop('ingredients')
