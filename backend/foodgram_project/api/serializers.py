@@ -349,7 +349,7 @@ class RecipeNewSerializer(serializers.ModelSerializer):
     @transaction.atomic
     def update(self, instance, validated_data):
         """Обновление рецепта."""
-        ingredients = validated_data.pop('ingredients')
+        ingredients = validated_data.pop('recipe_ingredients')
         tags = validated_data.pop('tags')
         instance.ingredients.clear()
         instance.tags.set(tags)
