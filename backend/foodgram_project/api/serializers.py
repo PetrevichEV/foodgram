@@ -331,7 +331,8 @@ class RecipeNewSerializer(serializers.ModelSerializer):
         IngredientForRecipe.objects.bulk_create(
             ingredient_for_recipes
         )
-
+        
+    @transaction.atomic
     def create(self, validated_data):
         """Создание рецепта."""
         tags = validated_data.pop('tags')
@@ -344,7 +345,8 @@ class RecipeNewSerializer(serializers.ModelSerializer):
         recipe.tags.set(tags)
         self.add_ingredients(recipe, ingredients)
         return recipe
-
+    
+    @transaction.atomic
     def update(self, instance, validated_data):
         """Обновление рецепта."""
         ingredients = validated_data.pop('ingredients')
