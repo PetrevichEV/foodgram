@@ -50,52 +50,7 @@ class UserSerializer(serializers.ModelSerializer):
             user.save()
         return user
 
-# class UserMeSerializer(serializers.ModelSerializer):
-#     """Сериализатор для отображения пользователя."""
-
-#     is_subscribed = serializers.SerializerMethodField()
-
-#     class Meta:
-#         model = User
-#         fields = (
-#             'email', 'id', 'username', 'first_name',
-#             'last_name', 'is_subscribed', 'avatar'
-#         )
-
-class SubscriptionNewSerializer(serializers.ModelSerializer):
-    """Cозданиее подписки."""
-    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
-    author = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
-
-    class Meta:
-        model = Subscription
-        fields = ('user', 'author')
-
-    def validate(self, data):
-        user, author = data['user'], data['author']
-
-        if user == author:
-            raise serializers.ValidationError(
-                "Вы не можете подписаться на себя."
-            )
-
-        if Subscription.objects.filter(user=user, author=author).exists():
-            raise serializers.ValidationError(
-                "Вы уже подписаны на данного пользователя."
-            )
-
-        return data
-
-    def to_representation(self, instance):
-        """Возвращаем информацию о пользователе,
-        на которого была создана подписка."""
-        return SubscriptionListSerializer(
-            instance.author,
-            context=self.context
-        ).data
-
-
-class SubscriptionListSerializer(UserSerializer):
+class UserSubscriptionSerializer(UserSerializer):
     """Отображение подписанного пользователя."""
 
     recipes = serializers.SerializerMethodField()
@@ -123,6 +78,37 @@ class SubscriptionListSerializer(UserSerializer):
             pass
 
         return []
+
+class SubscriptionSerializer(serializers.ModelSerializer):
+    """Cозданиее подписки."""
+    class Meta:
+        model = Subscription
+        fields = ('user', 'author')
+
+    def validate(self, data):
+        user, author = data['user'], data['author']
+
+        if user == author:
+            raise serializers.ValidationError(
+                "Вы не можете подписаться на себя."
+            )
+
+        if Subscription.objects.filter(user=user, author=author).exists():
+            raise serializers.ValidationError(
+                "Вы уже подписаны на данного пользователя."
+            )
+
+        return data
+
+    def to_representation(self, instance):
+        """Возвращаем информацию о пользователе,
+        на которого была создана подписка."""
+        return UserSubscriptionSerializer(
+            instance.author,
+            context=self.context
+        ).data
+
+
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -349,7 +335,7 @@ class RecipeNewSerializer(serializers.ModelSerializer):
     @transaction.atomic
     def update(self, instance, validated_data):
         """Обновление рецепта."""
-        ingredients = validated_data.pop('recipe_ingredients')
+        ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
         instance.ingredients.clear()
         instance.tags.set(tags)
