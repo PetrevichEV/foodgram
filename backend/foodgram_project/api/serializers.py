@@ -41,14 +41,6 @@ class UserSerializer(serializers.ModelSerializer):
             ).exists()
         return False
 
-    def create(self, validated_data):
-        """Создаем пользователя с учетом аватара."""
-        avatar = validated_data.pop('avatar', None)
-        user = User.objects.create_user(**validated_data)
-        if avatar:
-            user.avatar = avatar
-            user.save()
-        return user
 
 class UserSubscriptionSerializer(UserSerializer):
     """Отображение подписанного пользователя."""
