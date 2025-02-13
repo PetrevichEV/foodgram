@@ -50,6 +50,13 @@ class UserViewSet(DjoserUserViewSet):
     permission_classes = (permissions.AllowAny,)
     pagination_class = PagePaginator
 
+    def retrieve(self, request, pk=None):
+        """Получение информации о пользователе по ID."""
+        queryset = User.objects.all()
+        user = get_object_or_404(queryset, pk=pk)
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
+
     # @action(
     #     detail=False,
     #     methods=('get',),
@@ -88,7 +95,7 @@ class UserViewSet(DjoserUserViewSet):
     @action(
         detail=False,
         methods=('get',),
-        permission_classes=(permissions.IsAuthenticated,),        
+        permission_classes=(permissions.IsAuthenticated,),
     )
     def subscriptions(self, request):
         """Получение списка подписок"""
@@ -132,6 +139,7 @@ class UserViewSet(DjoserUserViewSet):
                             status=status.HTTP_400_BAD_REQUEST)
         subscription.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
