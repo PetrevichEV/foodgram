@@ -47,12 +47,13 @@ class UserViewSet(DjoserUserViewSet):
     """Вьюсет для управления текущим пользователем."""
 
     serializer_class = UserSerializer
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (permissions.AllowAny,)
     pagination_class = PagePaginator
 
     @action(
         detail=False,
         methods=('get',),
+        permission_classes=(permissions.IsAuthenticated,)
     )
     def me(self, request):
         """Отражение текущего пользователя."""
@@ -64,6 +65,7 @@ class UserViewSet(DjoserUserViewSet):
         detail=False,
         methods=('put',),
         url_path='me/avatar',
+        permission_classes=(permissions.IsAuthenticated,),
     )
     def avatar(self, request):
         """Добавление/обновление аватара."""
@@ -85,7 +87,8 @@ class UserViewSet(DjoserUserViewSet):
 
     @action(
         detail=False,
-        methods=('get',)
+        methods=('get',),
+        permission_classes=(permissions.IsAuthenticated,),        
     )
     def subscriptions(self, request):
         """Получение списка подписок"""
@@ -98,7 +101,8 @@ class UserViewSet(DjoserUserViewSet):
     @action(
         detail=True,
         methods=('post'),
-        url_path='subscribe'
+        url_path='subscribe',
+        permission_classes=(permissions.IsAuthenticated,),
     )
     def subscribe(self, request, id=None):
         """Создание подписки."""
