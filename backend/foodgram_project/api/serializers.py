@@ -49,6 +49,9 @@ class UserCreateSerializer(BaseUserCreateSerializer):
         fields = ('id', 'email', 'username',
                   'first_name', 'last_name', 'password')
 
+    def create(self, validated_data):
+        user = User.objects.create_user(**validated_data)
+        return user
 
 class UserSubscriptionSerializer(UserSerializer):
     """Отображение подписанного пользователя."""
