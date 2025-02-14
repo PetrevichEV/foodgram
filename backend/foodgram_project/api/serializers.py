@@ -28,8 +28,8 @@ class UserSerializer(UserSerializer):
 
     class Meta:
         model = User
-        fields = ('email', 'username', 'first_name',
-                  'last_name', 'avatar', 'is_subscribed')
+        fields = ('email', 'id', 'username', 'first_name',
+                  'last_name', 'is_subscribed', 'avatar')
 
     def get_is_subscribed(self, obj):
         """Проверяет, подписан ли текущий пользователь на автора."""
@@ -44,14 +44,8 @@ class UserSerializer(UserSerializer):
 class UserCreateSerializer(UserCreateSerializer):
     class Meta:
         model = User
-        fields = (
-            'email',
-            'id',
-            'username',
-            'first_name',
-            'last_name',
-            'password',
-        )
+        fields = ('email', 'id', 'username',
+                  'first_name', 'last_name', 'password')
         read_only_fields = ('id',)
 
     def create(self, validated_data):
@@ -62,6 +56,7 @@ class UserCreateSerializer(UserCreateSerializer):
             user.avatar = avatar
             user.save()
         return user
+
 
 class UserSubscriptionSerializer(UserSerializer):
     """Отображение подписанного пользователя."""
