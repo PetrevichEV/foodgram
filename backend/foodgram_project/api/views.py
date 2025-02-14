@@ -50,6 +50,11 @@ class UserViewSet(DjoserUserViewSet):
     permission_classes = (permissions.AllowAny,)
     pagination_class = PagePaginator
 
+    def retrieve(self, request, pk=None):
+        user = get_object_or_404(User, pk=pk)
+        serializer = self.serializer_class(user)
+        return Response(serializer.data)
+    
     @action(
         detail=False,
         methods=('get',),
