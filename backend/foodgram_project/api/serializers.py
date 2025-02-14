@@ -1,4 +1,5 @@
 from django.db import transaction
+from djoser.serializers import UserCreateSerializer as BaseUserCreateSerializer
 from django.contrib.auth import get_user_model
 
 from rest_framework import serializers
@@ -41,6 +42,14 @@ class UserSerializer(serializers.ModelSerializer):
         return False
 
 
+class UserCreateSerializer(BaseUserCreateSerializer):
+    """Сериалайзер для регистрации юзера"""
+    class Meta(BaseUserCreateSerializer.Meta):
+        model = User
+        fields = ('id', 'email', 'username',
+                  'first_name', 'last_name', 'password')
+
+
 class UserSubscriptionSerializer(UserSerializer):
     """Отображение подписанного пользователя."""
 
@@ -70,6 +79,7 @@ class UserSubscriptionSerializer(UserSerializer):
 
         return []
 
+
 class SubscriptionSerializer(serializers.ModelSerializer):
     """Cозданиее подписки."""
     class Meta:
@@ -98,8 +108,6 @@ class SubscriptionSerializer(serializers.ModelSerializer):
             instance.author,
             context=self.context
         ).data
-
-
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -293,7 +301,7 @@ class RecipeNewSerializer(serializers.ModelSerializer):
         if not img:
             raise serializers.ValidationError('Нужно изображение.')
         return img
-    
+
     @staticmethod
     def add_ingredients(recipe, ingredients):
         """Добавление ингредиентов в рецепт."""
@@ -322,7 +330,7 @@ class RecipeNewSerializer(serializers.ModelSerializer):
         recipe.tags.set(tags)
         self.add_ingredients(recipe, ingredients)
         return recipe
-    
+
     @transaction.atomic
     def update(self, instance, validated_data):
         """Обновление рецепта."""
