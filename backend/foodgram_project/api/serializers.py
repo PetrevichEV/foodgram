@@ -1,5 +1,5 @@
 from django.db import transaction
-from djoser.serializers import UserCreateSerializer as BaseUserCreateSerializer
+from djoser.serializers import UserCreateSerializer as DjoserUserSerializer
 from django.contrib.auth import get_user_model
 
 from rest_framework import serializers
@@ -25,12 +25,10 @@ class UserSerializer(serializers.ModelSerializer):
     """Сериализатор для модели User."""
 
     is_subscribed = serializers.SerializerMethodField()
-    avatar = Base64ImageField(required=False, allow_null=True)
 
-    class Meta:
+    class Meta(DjoserUserSerializer.Meta):
         model = User
-        fields = ('email', 'id', 'username', 'first_name',
-                  'last_name', 'is_subscribed', 'avatar')
+        fields = DjoserUserSerializer.Meta.fields + ('is_subscribed', 'avatar')
 
     def get_is_subscribed(self, obj):
         """Проверяет, подписан ли текущий пользователь на автора."""
@@ -41,17 +39,6 @@ class UserSerializer(serializers.ModelSerializer):
             ).exists()
         return False
 
-
-class UserCreateSerializer(BaseUserCreateSerializer):
-    """Сериалайзер для регистрации юзера"""
-    class Meta(BaseUserCreateSerializer.Meta):
-        model = User
-        fields = ('id', 'email', 'username',
-                  'first_name', 'last_name', 'password')
-
-    def create(self, validated_data):
-        user = User.objects.create_user(**validated_data)
-        return user
 
 class UserSubscriptionSerializer(UserSerializer):
     """Отображение подписанного пользователя."""

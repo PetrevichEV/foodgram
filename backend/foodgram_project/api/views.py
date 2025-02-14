@@ -57,16 +57,16 @@ class UserViewSet(DjoserUserViewSet):
         serializer = UserSerializer(user)
         return Response(serializer.data)
 
-    # @action(
-    #     detail=False,
-    #     methods=('get',),
-    #     permission_classes=(permissions.IsAuthenticated,)
-    # )
-    # def me(self, request):
-    #     """Отражение текущего пользователя."""
-    #     user = request.user
-    #     serializer = UserSerializer(user)
-    #     return Response(serializer.data)
+    @action(
+        detail=False,
+        methods=('get',),
+        permission_classes=(permissions.IsAuthenticated,)
+    )
+    def me(self, request):
+        """Отражение текущего пользователя."""
+        user = request.user
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
 
     @action(
         detail=False,
