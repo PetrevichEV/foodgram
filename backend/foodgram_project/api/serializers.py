@@ -28,8 +28,8 @@ class UserSerializer(UserSerializer):
 
     class Meta:
         model = User
-        fields = ('email', 'id' 'username', 'first_name',
-                  'last_name', 'is_subscribed', 'avatar')
+        fields = ('email', 'username', 'first_name',
+                  'last_name', 'avatar', 'is_subscribed')
 
     def get_is_subscribed(self, obj):
         """Проверяет, подписан ли текущий пользователь на автора."""
