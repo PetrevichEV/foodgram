@@ -46,6 +46,7 @@ FILE_NAME = 'shopping_list.txt'
 class UserViewSet(DjoserUserViewSet):
     """Вьюсет для управления текущим пользователем."""
 
+    queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (permissions.AllowAny,)
     pagination_class = PagePaginator
