@@ -50,7 +50,6 @@ class UserViewSet(DjoserUserViewSet):
     permission_classes = (permissions.AllowAny,)
     pagination_class = PagePaginator
 
-
     @action(
         detail=False,
         methods=('get',),
