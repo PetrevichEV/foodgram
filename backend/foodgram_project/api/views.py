@@ -110,7 +110,7 @@ class UserViewSet(DjoserUserViewSet):
         author = get_object_or_404(User, pk=pk)
         user = request.user
         Subscription.objects.create(user=user, author=author)
-        serializer = UserSubscriptionSerializer(
+        serializer = SubscriptionSerializer(
             author, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
