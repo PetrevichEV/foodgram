@@ -50,13 +50,11 @@ class UserViewSet(DjoserUserViewSet):
     permission_classes = (permissions.AllowAny,)
     pagination_class = PagePaginator
 
-    def retrieve(self, request, pk=None):
-        """Получение информации о пользователе по ID."""
-        queryset = User.objects.all()
-        user = get_object_or_404(queryset, pk=pk)
-        serializer = UserSerializer(user)
-        return Response(serializer.data)
-
+    def me(self, request, *args, **kwargs):
+        """Получение данных текущего пользователя."""
+        return Response(self.get_serializer(request.user).data)
+    
+    
     @action(
         detail=False,
         methods=('get',),
