@@ -51,11 +51,6 @@ class UserViewSet(DjoserUserViewSet):
     permission_classes = (permissions.AllowAny,)
     pagination_class = PagePaginator
 
-    # def retrieve(self, request, pk=None):
-    #     user = get_object_or_404(User, pk=pk)
-    #     serializer = self.serializer_class(user)
-    #     return Response(serializer.data)
-    
     @action(
         detail=False,
         methods=('get',),
@@ -100,7 +95,7 @@ class UserViewSet(DjoserUserViewSet):
         """Получение списка подписок"""
         queryset = User.objects.filter(subscribers__user=request.user)
         page = self.paginate_queryset(queryset)
-        serializer = SubscriptionSerializer(
+        serializer = UserSubscriptionSerializer(
             page, many=True, context={'request': request})
         return self.get_paginated_response(serializer.data)
 
@@ -110,9 +105,9 @@ class UserViewSet(DjoserUserViewSet):
         url_path='subscribe',
         permission_classes=(permissions.IsAuthenticated,),
     )
-    def subscribe(self, request, id=None):
+    def subscribe(self, request, pk=None):
         """Создание подписки."""
-        author = get_object_or_404(User, id=id)
+        author = get_object_or_404(User, pk=pk)
         user = request.user
 
         if user == author:
@@ -123,14 +118,14 @@ class UserViewSet(DjoserUserViewSet):
             return Response({'errors': 'Уже подписан'},
                             status=status.HTTP_400_BAD_REQUEST)
         Subscription.objects.create(user=user, author=author)
-        serializer = UserSubscriptionSerializer(
+        serializer = SubscriptionSerializer(
             author, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @subscribe.mapping.delete
-    def del_subscription(self, request, id=None):
+    def del_subscription(self, request, pk=None):
         """Удаление подписки."""
-        author = get_object_or_404(User, id=id)
+        author = get_object_or_404(User, pk=pk)
         user = request.user
         subscription = Subscription.objects.filter(user=user, author=author)
         if not subscription.exists():

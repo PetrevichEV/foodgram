@@ -85,7 +85,15 @@ class UserSubscriptionSerializer(UserSerializer):
         except (ValueError, TypeError):
             pass
 
-        return []
+        return RecipeForSubscriptionSerializer(queryset, many=True,
+                                               context=self.context).data
+
+
+class RecipeForSubscriptionSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time')
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
