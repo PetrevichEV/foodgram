@@ -113,7 +113,7 @@ class UserViewSet(DjoserUserViewSet):
         serializer = SubscriptionSerializer(
             author, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-я
+
     @subscribe.mapping.delete
     def del_subscription(self, request, pk=None):
         """Удаление подписки."""
