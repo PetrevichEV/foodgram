@@ -93,6 +93,7 @@ class UserViewSet(DjoserUserViewSet):
     @action(
         detail=False,
         methods=('get',),
+        url_path='subscriptions',
         permission_classes=(permissions.IsAuthenticated,),
     )
     def subscriptions(self, request):
@@ -105,7 +106,8 @@ class UserViewSet(DjoserUserViewSet):
 
     @action(
         detail=True,
-        methods=('post', 'delete'),
+        methods=('post', 'delete',),
+        url_path='subscribe',
         permission_classes=(permissions.IsAuthenticated,),
     )
     def subscribe(self, request, pk=None):
