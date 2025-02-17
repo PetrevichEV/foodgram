@@ -1,7 +1,6 @@
 from django.db import transaction
 from django.contrib.auth import get_user_model
-from djoser.serializers import (UserCreateSerializer,
-                                UserSerializer as DjoserUserSerializer)
+from djoser.serializers import UserCreateSerializer, UserSerializer
 
 from rest_framework import serializers
 
@@ -22,7 +21,7 @@ from users.models import Subscription
 User = get_user_model()
 
 
-class UserSerializer(DjoserUserSerializer):
+class UserSerializer(UserSerializer):
     """Сериализатор для модели User."""
 
     is_subscribed = serializers.SerializerMethodField()
@@ -70,7 +69,7 @@ class UserSubscriptionSerializer(UserSerializer):
 
     def get_recipes_count(self, obj):
         """Подсчет общего количества рецептов пользователя."""
-        return Recipe.objects.filter(author=obj).count()
+        return obj.recipes.count()
 
     def get_recipes(self, obj):
         """Получение списка рецептов автора с учетом лимита."""
@@ -79,12 +78,15 @@ class UserSubscriptionSerializer(UserSerializer):
         recipes_limit = request.query_params.get(
             'recipes_limit'
         )
+
         try:
             if recipes_limit and int(recipes_limit) > 0:
                 queryset = queryset[:int(recipes_limit)]
         except (ValueError, TypeError):
             pass
-        return RecipeForSubscriptionSerializer(queryset, many=True).data
+
+        return RecipeForSubscriptionSerializer(queryset, many=True,
+                                               context=self.context).data
 
 
 class RecipeForSubscriptionSerializer(serializers.ModelSerializer):
