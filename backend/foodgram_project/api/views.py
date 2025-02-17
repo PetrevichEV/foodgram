@@ -54,7 +54,7 @@ class UserViewSet(DjoserUserViewSet):
 
     def get_author(self, pk):
         return get_object_or_404(User, pk=pk)
-    
+
     @action(
         detail=False,
         methods=('get',),
@@ -112,19 +112,31 @@ class UserViewSet(DjoserUserViewSet):
     )
     def subscribe(self, request, pk=None):
         """Создание подписки."""
-        context = self.get_serializer_context()
-        author = self.get_author(pk)
-        data = {
-            'author': author.pk,
-            'user': request.user.pk
-        }
-        serializer = SubscriptionSerializer(data=data, context=context)
-        try:
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        except ValidationError as e:
-            return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
+        # context = self.get_serializer_context()
+        # author = self.get_author(pk)
+        # data = {
+        #     'author': author.pk,
+        #     'user': request.user.pk
+        # }
+        # serializer = SubscriptionSerializer(data=data, context=context)
+        # try:
+        #     serializer.is_valid(raise_exception=True)
+        #     serializer.save()
+        #     return Response(serializer.data, status=status.HTTP_201_CREATED)
+        # except ValidationError as e:
+        #     return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
+        author = get_object_or_404(User, pk=pk)
+        user = self.get_author(pk)
+        _, created = Subscription.objects.get_or_create(
+            user=user, author=author)
+        if not created:
+            raise ValidationError(
+                "Вы уже подписаны на этого пользователя!")
+        return Response(
+            UserSubscriptionSerializer(
+                author, context={"request": request}).data,
+            status=status.HTTP_201_CREATED,
+        )
 
     @action(
         detail=True,
@@ -144,6 +156,7 @@ class UserViewSet(DjoserUserViewSet):
         except Subscription.DoesNotExist:
             return Response({'errors': 'Подписка не найдена.'},
                             status=status.HTTP_404_NOT_FOUND)
+
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
