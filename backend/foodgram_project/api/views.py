@@ -23,7 +23,7 @@ from .serializers import (
     RecipeNewSerializer,
     RecipeSerializer,
     UserSubscriptionSerializer,
-    SubscriptionSerializer,
+    # SubscriptionSerializer,
     TagSerializer,
     UserSerializer,
     FavoriteSerializer,
@@ -52,9 +52,9 @@ class UserViewSet(DjoserUserViewSet):
     permission_classes = (permissions.AllowAny,)
     pagination_class = PagePaginator
 
-    def get_author(self, pk):
-        return get_object_or_404(User, pk=pk)
-    
+    # def get_author(self, pk):
+    #     return get_object_or_404(User, pk=pk)
+
     @action(
         detail=False,
         methods=('get',),
@@ -105,45 +105,41 @@ class UserViewSet(DjoserUserViewSet):
 
     @action(
         detail=True,
-        methods=('post'),
-        url_path='subscribe',
-        url_name='subscribe',
+        methods=('post', 'delete'),
         permission_classes=(permissions.IsAuthenticated,),
     )
     def subscribe(self, request, pk=None):
-        """Создание подписки."""
-        context = self.get_serializer_context()
-        author = self.get_author(pk)
-        data = {
-            'author': author.pk,
-            'user': request.user.pk
-        }
-        serializer = SubscriptionSerializer(data=data, context=context)
-        try:
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        except ValidationError as e:
-            return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
-
-    @action(
-        detail=True,
-        methods=('delete'),
-        url_path='unsubscribe',
-        url_name='unsubscribe',
-        permission_classes=(permissions.IsAuthenticated,),
-    )
-    def delete_subscription(self, request, pk=None):
-        """Удаление подписки."""
-        author = self.get_author(pk)
+        author = self.get_object()
         user = request.user
-        try:
-            subscription = Subscription.objects.get(user=user, author=author)
+        if request.method == 'DELETE':
+            subscription = Subscription.objects.filter(
+                user=user, author=author
+            ).first()
+            if not subscription:
+                return Response(
+                    {'detail': 'Подписка не найдена.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
             subscription.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
-        except Subscription.DoesNotExist:
-            return Response({'errors': 'Подписка не найдена.'},
-                            status=status.HTTP_404_NOT_FOUND)
+        if author == user:
+            return Response(
+                {'detail': 'Нельзя подписаться на самого себя.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if Subscription.objects.filter(
+                user=user, author=author).exists():
+            return Response(
+                {'detail': 'Вы уже подписаны на этого пользователя.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        Subscription.objects.create(user=user, author=author)
+        context = self.get_serializer_context()
+        context['recipes_limit'] = request.query_params.get('recipes_limit')
+        user_data = UserSubscriptionSerializer(
+            author, context=context).data
+        return Response(user_data, status=status.HTTP_201_CREATED)
+
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
