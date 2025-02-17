@@ -114,6 +114,15 @@ class UserViewSet(DjoserUserViewSet):
             author, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    @subscribe.mapping.delete
+    def del_subscription(self, request, pk=None):
+        """Удаление подписки."""
+        author = get_object_or_404(User, pk=pk)
+        user = request.user
+        subscription = Subscription.objects.filter(user=user, author=author)
+        subscription.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
