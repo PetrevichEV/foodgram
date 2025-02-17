@@ -70,7 +70,7 @@ class UserSubscriptionSerializer(UserSerializer):
 
     def get_recipes_count(self, obj):
         """Подсчет общего количества рецептов пользователя."""
-        return obj.recipes.count()
+        return Recipe.objects.filter(author=obj).count()
 
     def get_recipes(self, obj):
         """Получение списка рецептов автора с учетом лимита."""
@@ -79,15 +79,12 @@ class UserSubscriptionSerializer(UserSerializer):
         recipes_limit = request.query_params.get(
             'recipes_limit'
         )
-
         try:
             if recipes_limit and int(recipes_limit) > 0:
                 queryset = queryset[:int(recipes_limit)]
         except (ValueError, TypeError):
             pass
-
-        return RecipeForSubscriptionSerializer(queryset, many=True,
-                                               context=self.context).data
+        return RecipeForSubscriptionSerializer(queryset, many=True).data
 
 
 class RecipeForSubscriptionSerializer(serializers.ModelSerializer):
