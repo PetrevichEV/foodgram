@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.db.models import Exists, F, OuterRef, Sum
 from django.http import FileResponse
+from rest_framework.exceptions import ValidationError
 
 from django.shortcuts import get_object_or_404
 
@@ -102,20 +103,26 @@ class UserViewSet(DjoserUserViewSet):
     @action(
         detail=True,
         methods=('post'),
-        url_path='subscribe',
         permission_classes=(permissions.IsAuthenticated,),
     )
     def subscribe(self, request, pk=None):
         """Создание подписки."""
+        context = self.get_serializer_context()
         author = get_object_or_404(User, pk=pk)
-        user = request.user
-        Subscription.objects.create(user=user, author=author)
-        serializer = SubscriptionSerializer(
-            author, context={'request': request})
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        data = {
+            'author': author.pk,
+            'user': request.user.pk
+        }
+        serializer = SubscriptionSerializer(data=data, context=context)
+        try:
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except ValidationError as e:
+            return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
 
     @subscribe.mapping.delete
-    def del_subscription(self, request, pk=None):
+    def delete_subscription(self, request, pk=None):
         """Удаление подписки."""
         author = get_object_or_404(User, pk=pk)
         user = request.user
@@ -213,8 +220,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
             else status.HTTP_400_BAD_REQUEST
         )
 
-    @action(detail=True, methods=('post',),
-            permission_classes=(permissions.IsAuthenticated,))
+    @action(
+            detail=True,
+            methods=('post',),
+            permission_classes=(permissions.IsAuthenticated,),
+    )
     def shopping_cart(self, request, pk=None):
         """Добавляет рецепт в корзину покупок."""
         return self.handle_favorite_or_cart(
