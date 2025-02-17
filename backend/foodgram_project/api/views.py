@@ -112,7 +112,7 @@ class UserViewSet(DjoserUserViewSet):
     )
     def subscribe(self, request, pk=None):
         """Создание подписки."""
-        context = {'request': request}
+        context = self.get_serializer_context()
         author = self.get_author(pk)
         data = {
             'author': author.pk,
@@ -132,7 +132,7 @@ class UserViewSet(DjoserUserViewSet):
             url_path='unsubscribe',
             url_name='unsubscribe',
     )
-    def del_subscription(self, request, pk=None):
+    def delete_subscription(self, request, pk=None):
         """Удаление подписки."""
         author = self.get_author(pk)
         user = request.user

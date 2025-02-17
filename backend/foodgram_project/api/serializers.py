@@ -98,8 +98,6 @@ class RecipeForSubscriptionSerializer(serializers.ModelSerializer):
 
 class SubscriptionSerializer(serializers.ModelSerializer):
 
-    author = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
-
     class Meta:
         model = Subscription
         fields = ('user', 'author')
