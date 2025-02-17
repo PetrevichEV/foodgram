@@ -127,10 +127,11 @@ class UserViewSet(DjoserUserViewSet):
             return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
 
     @action(
-            detail=True,
-            methods=('delete'),
-            url_path='unsubscribe',
-            url_name='unsubscribe',
+        detail=True,
+        methods=('delete'),
+        url_path='unsubscribe',
+        url_name='unsubscribe',
+        permission_classes=(permissions.IsAuthenticated,),
     )
     def delete_subscription(self, request, pk=None):
         """Удаление подписки."""

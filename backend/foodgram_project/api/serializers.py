@@ -101,7 +101,6 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscription
         fields = ('user', 'author')
-        read_only_fields = ('user',)
 
     def validate(self, data):
         user, author = data['user'], data['author']
