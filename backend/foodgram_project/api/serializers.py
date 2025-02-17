@@ -103,12 +103,21 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         fields = ('user', 'author')
 
     def validate(self, data):
-        user, author = data['user'], data['author']
+        user, author = self.context['request'].user, data['author']
         if user == author:
             raise serializers.ValidationError(
                 "Вы не можете подписаться на себя."
             )
+        if user.subscriptions.filter(author=author).exists():
+            raise serializers.ValidationError(
+                'Вы уже подписаны на этого автора.')
         return data
+
+    def to_representation(self, instance):
+        return UserSubscriptionSerializer(
+            instance.author,
+            context=self.context
+        ).data
 
 
 class TagSerializer(serializers.ModelSerializer):
