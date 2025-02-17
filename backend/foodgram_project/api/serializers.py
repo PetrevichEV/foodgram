@@ -1,6 +1,7 @@
 from django.db import transaction
 from django.contrib.auth import get_user_model
-from djoser.serializers import UserCreateSerializer, UserSerializer
+from djoser.serializers import (UserCreateSerializer,
+                                UserSerializer as DjoserSerializer)
 
 from rest_framework import serializers
 
@@ -21,7 +22,7 @@ from users.models import Subscription
 User = get_user_model()
 
 
-class UserSerializer(UserSerializer):
+class UserSerializer(DjoserSerializer):
     """Сериализатор для модели User."""
 
     is_subscribed = serializers.SerializerMethodField()
