@@ -107,7 +107,7 @@ class UserViewSet(DjoserUserViewSet):
         detail=True,
         methods=('post'),
         url_path='subscribe',
-        url_name='unsubscribe',
+        url_name='subscribe',
         permission_classes=(permissions.IsAuthenticated,),
     )
     def subscribe(self, request, pk=None):
