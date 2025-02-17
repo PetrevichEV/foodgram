@@ -52,6 +52,9 @@ class UserViewSet(DjoserUserViewSet):
     permission_classes = (permissions.AllowAny,)
     pagination_class = PagePaginator
 
+    def get_author(self, pk):
+        return get_object_or_404(User, pk=pk)
+    
     @action(
         detail=False,
         methods=('get',),
@@ -104,11 +107,9 @@ class UserViewSet(DjoserUserViewSet):
         detail=True,
         methods=('post'),
         url_path='subscribe',
+        url_name='unsubscribe',
         permission_classes=(permissions.IsAuthenticated,),
     )
-    def get_author(self, pk):
-        return get_object_or_404(User, pk=pk)
-
     def subscribe(self, request, pk=None):
         """Создание подписки."""
         context = {'request': request}
@@ -125,7 +126,12 @@ class UserViewSet(DjoserUserViewSet):
         except ValidationError as e:
             return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
 
-    @subscribe.mapping.delete
+    @action(
+            detail=True,
+            methods=('delete'),
+            url_path='unsubscribe',
+            url_name='unsubscribe',
+    )
     def del_subscription(self, request, pk=None):
         """Удаление подписки."""
         author = self.get_author(pk)
@@ -137,7 +143,6 @@ class UserViewSet(DjoserUserViewSet):
         except Subscription.DoesNotExist:
             return Response({'errors': 'Подписка не найдена.'},
                             status=status.HTTP_404_NOT_FOUND)
-
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
