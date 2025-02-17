@@ -89,11 +89,13 @@ class UserViewSet(DjoserUserViewSet):
 
     @action(
         detail=False,
-        methods=('get',),
-        permission_classes=(permissions.IsAuthenticated,),
+        methods=['GET'],
+        url_path='subscriptions',
+        url_name='subscriptions',
+        permission_classes=[permissions.IsAuthenticated],
     )
     def subscriptions(self, request):
-        """Получение списка подписок"""
+        """Получение списка подписок текущего пользователя."""
         queryset = User.objects.filter(subscribers__user=request.user)
         page = self.paginate_queryset(queryset)
         serializer = UserSubscriptionSerializer(
@@ -102,33 +104,42 @@ class UserViewSet(DjoserUserViewSet):
 
     @action(
         detail=True,
-        methods=('post'),
-        permission_classes=(permissions.IsAuthenticated,),
+        methods=['POST', 'DELETE'],
+        url_path='subscribe',
+        url_name='subscribe',
+        permission_classes=[permissions.IsAuthenticated],
     )
     def subscribe(self, request, pk=None):
-        """Создание подписки."""
-        context = self.get_serializer_context()
-        author = get_object_or_404(User, pk=pk)
-        data = {
-            'author': author.pk,
-            'user': request.user.pk
-        }
-        serializer = SubscriptionSerializer(data=data, context=context)
-        try:
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        except ValidationError as e:
-            return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
-
-    @subscribe.mapping.delete
-    def delete_subscription(self, request, pk=None):
-        """Удаление подписки."""
+        """Создание и удаление подписки."""
         author = get_object_or_404(User, pk=pk)
         user = request.user
-        subscription = Subscription.objects.filter(user=user, author=author)
-        subscription.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+
+        if user == author:
+            return Response({"detail": "Вы не можете подписаться на себя."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        if request.method == 'POST':
+            data = {'user': user.pk, 'author': author.pk}
+            serializer = SubscriptionSerializer(
+                data=data, context=self.get_serializer_context())
+            try:
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+                return Response(
+                    serializer.data, status=status.HTTP_201_CREATED)
+            except ValidationError as e:
+                return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
+        elif request.method == 'DELETE':
+            try:
+                subscription = Subscription.objects.get(
+                    user=user, author=author)
+                subscription.delete()
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            except Subscription.DoesNotExist:
+                return Response(
+                    {"detail": "Вы не подписаны на этого пользователя."},
+                    status=status.HTTP_404_NOT_FOUND)
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -221,9 +232,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
         )
 
     @action(
-            detail=True,
-            methods=('post',),
-            permission_classes=(permissions.IsAuthenticated,),
+        detail=True,
+        methods=('post',),
+        permission_classes=(permissions.IsAuthenticated,),
     )
     def shopping_cart(self, request, pk=None):
         """Добавляет рецепт в корзину покупок."""

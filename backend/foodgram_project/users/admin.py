@@ -1,6 +1,8 @@
+from .models import Subscription
 from django.contrib import admin
+from django.contrib.auth import get_user_model
 
-from .models import User, Subscription
+User = get_user_model()
 
 
 @admin.register(User)
@@ -20,5 +22,7 @@ class UserAdmin(admin.ModelAdmin):
 
 
 @admin.register(Subscription)
-class SubscriptionowAdmin(admin.ModelAdmin):
-    list_display = ('id',)
+class SubscriptionAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'author')
+    list_display_links = ('id', 'user', 'author')
+    search_fields = ('user__username', 'author__username')
