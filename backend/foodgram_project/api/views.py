@@ -109,9 +109,9 @@ class UserViewSet(DjoserUserViewSet):
         url_name='subscribe',
         permission_classes=[permissions.IsAuthenticated],
     )
-    def subscribe(self, request, pk=None):
+    def subscribe(self, request, id=None):
         """Создание и удаление подписки."""
-        author = get_object_or_404(User, pk=pk)
+        author = get_object_or_404(User, pk=id)
         user = request.user
 
         if user == author:
