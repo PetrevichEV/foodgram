@@ -10,6 +10,7 @@ from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
+from rest_framework.exceptions import ValidationError
 
 from djoser.views import UserViewSet as DjoserUserViewSet
 
@@ -105,23 +106,37 @@ class UserViewSet(DjoserUserViewSet):
         url_path='subscribe',
         permission_classes=(permissions.IsAuthenticated,),
     )
+    def get_author(self, pk):
+        return get_object_or_404(User, pk=pk)
+
     def subscribe(self, request, pk=None):
         """Создание подписки."""
-        author = get_object_or_404(User, pk=pk)
-        user = request.user
-        Subscription.objects.create(user=user, author=author)
-        serializer = SubscriptionSerializer(
-            author, context={'request': request})
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        context = {'request': request}
+        author = self.get_author(pk)
+        data = {
+            'author': author.pk,
+            'user': request.user.pk
+        }
+        serializer = SubscriptionSerializer(data=data, context=context)
+        try:
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except ValidationError as e:
+            return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
 
     @subscribe.mapping.delete
     def del_subscription(self, request, pk=None):
         """Удаление подписки."""
-        author = get_object_or_404(User, pk=pk)
+        author = self.get_author(pk)
         user = request.user
-        subscription = Subscription.objects.filter(user=user, author=author)
-        subscription.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        try:
+            subscription = Subscription.objects.get(user=user, author=author)
+            subscription.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Subscription.DoesNotExist:
+            return Response({'errors': 'Подписка не найдена.'},
+                            status=status.HTTP_404_NOT_FOUND)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
