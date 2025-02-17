@@ -1,6 +1,7 @@
 from django.db import transaction
 from django.contrib.auth import get_user_model
-from djoser.serializers import UserCreateSerializer, UserSerializer
+from djoser.serializers import (UserCreateSerializer,
+                                UserSerializer as DjoserUserSerializer)
 
 from rest_framework import serializers
 
@@ -21,7 +22,7 @@ from users.models import Subscription
 User = get_user_model()
 
 
-class UserSerializer(UserSerializer):
+class UserSerializer(DjoserUserSerializer):
     """Сериализатор для модели User."""
 
     is_subscribed = serializers.SerializerMethodField()
@@ -96,28 +97,34 @@ class RecipeForSubscriptionSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'image', 'cooking_time')
 
 
-# class SubscriptionSerializer(serializers.ModelSerializer):
+class SubscriptionSerializer(serializers.ModelSerializer):
+    """Cозданиее подписки."""
+    class Meta:
+        model = Subscription
+        fields = ('user', 'author')
 
-#     class Meta:
-#         model = Subscription
-#         fields = ('user', 'author')
+    def validate(self, data):
+        user, author = data['user'], data['author']
 
-#     def validate(self, data):
-#         user, author = self.context['request'].user, data['author']
-#         if user == author:
-#             raise serializers.ValidationError(
-#                 "Вы не можете подписаться на себя."
-#             )
-#         if user.subscriptions.filter(author=author).exists():
-#             raise serializers.ValidationError(
-#                 'Вы уже подписаны на этого автора.')
-#         return data
+        if user == author:
+            raise serializers.ValidationError(
+                "Вы не можете подписаться на себя."
+            )
 
-#     def to_representation(self, instance):
-#         return UserSubscriptionSerializer(
-#             instance.author,
-#             context=self.context
-#         ).data
+        if Subscription.objects.filter(user=user, author=author).exists():
+            raise serializers.ValidationError(
+                "Вы уже подписаны на данного пользователя."
+            )
+
+        return data
+
+    def to_representation(self, instance):
+        """Возвращаем информацию о пользователе,
+        на которого была создана подписка."""
+        return UserSubscriptionSerializer(
+            instance.author,
+            context=self.context
+        ).data
 
 
 class TagSerializer(serializers.ModelSerializer):
