@@ -3,7 +3,7 @@ from django.db.models import Exists, F, OuterRef, Sum
 from django.http import FileResponse
 from rest_framework.exceptions import ValidationError
 
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
@@ -298,14 +298,21 @@ class RecipeViewSet(viewsets.ModelViewSet):
         response['Content-Disposition'] = f'attachment; filename="{FILE_NAME}"'
         return response
 
-    @action(detail=True,
-            methods=('get',),
-            url_path='get-link')
+    @action(
+        detail=True,
+        methods=('GET',),
+        url_path='get-link'
+    )
     def get_link(self, request, pk=None):
         """Генерирует короткую ссылку на рецепт."""
         recipe = get_object_or_404(Recipe, pk=pk)
         short_url_path = reverse(
-            'redirect_to_original', kwargs={'slug': recipe.short_url}
+            'redirect_to_recipe', kwargs={'slug': recipe.short_url}
         )
         short_link = request.build_absolute_uri(short_url_path)
         return Response({'short-link': short_link}, status=status.HTTP_200_OK)
+
+
+def redirect_to_recipe(request, slug):
+    recipe = get_object_or_404(Recipe, short_url=slug)
+    return redirect(f'/recipes/{recipe.pk}/')
