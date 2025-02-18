@@ -310,7 +310,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """Генерирует короткую ссылку на рецепт."""
         recipe = self.get_object()
         hashids = Hashids(salt=settings.HASHIDS_SALT, min_length=8)
-        short_id = hashids.encode(recipe.pk)
+        short_id = hashids.encode(recipe.id)
         short_link = f'{settings.BASE_URL}/s/{short_id}'
         return Response({'short-link': short_link})
 
@@ -318,9 +318,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
 def redirect_to_recipe(request, short_id):
     """Перенаправляет на страницу рецепта по короткой ссылке."""
     hashids = Hashids(salt=settings.HASHIDS_SALT, min_length=8)
-    try:
-        recipe_id = hashids.decode(short_id)[0]
-        recipe = get_object_or_404(Recipe, pk=recipe_id)
-        return redirect(f'/recipes/{recipe.pk}/')
-    except (IndexError, ValueError):
-        return HttpResponseNotFound('Рецепт не найден')
+    decoded_id = hashids.decode(short_id)
+
+    if decoded_id:
+        recipe_id = decoded_id[0]
+        return redirect(f'/recipes/{recipe_id}/')
+
+    return HttpResponseNotFound('Рецепт не найден')
