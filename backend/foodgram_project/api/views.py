@@ -12,6 +12,8 @@ from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
+import logging
+
 
 from djoser.views import UserViewSet as DjoserUserViewSet
 
@@ -39,6 +41,7 @@ from food_recipes.models import (
 )
 from users.models import Subscription
 
+logger = logging.getLogger(__name__)
 
 User = get_user_model()
 
@@ -310,6 +313,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipe = self.get_object()
         short_id = str(uuid.uuid4())[:8]
         cache.set(short_id, recipe.pk, timeout=3600)
+        logger.info(f"Создана короткая ссылка: {short_id} -> {recipe.pk}")
         short_link = f'{settings.BASE_URL}/s/{short_id}'
         return Response({'short-link': short_link})
 
@@ -320,6 +324,6 @@ def redirect_to_recipe(request, short_id):
 
     if recipe_id:
         recipe = get_object_or_404(Recipe, pk=recipe_id)
-        return HttpResponseNotFound(f'/recipes/{recipe.pk}/')
+        return redirect(f'/recipes/{recipe.pk}/')
     else:
         return HttpResponseNotFound('Рецепт не найден')
