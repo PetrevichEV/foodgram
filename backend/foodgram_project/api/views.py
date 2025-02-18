@@ -307,7 +307,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     )
     def get_link(self, request, pk=None):
         """Генерирует короткую ссылку на рецепт."""
-        recipe = self.get_object()
+        recipe = get_object_or_404(Recipe, pk=pk)
         short_id = str(uuid.uuid4())[:8]
         cache.set(short_id, recipe.pk, timeout=3600)
         short_link = f'{settings.BASE_URL}/s/{short_id}'
