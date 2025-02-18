@@ -235,26 +235,42 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(
         detail=True,
-        methods=('post',),
-        permission_classes=(permissions.IsAuthenticated,),
+        methods=['POST', 'DELETE'],
+        url_path='shopping_cart',
+        url_name='shopping_cart',
+        permission_classes=[permissions.IsAuthenticated]
     )
     def shopping_cart(self, request, pk=None):
-        """Добавляет рецепт в корзину покупок."""
-        return self.handle_favorite_or_cart(
-            request, pk, ShoppingListSerializer
-        )
-
-    @shopping_cart.mapping.delete
-    def delete_shopping_cart(self, request, pk=None):
-        """Удаляет рецепт из корзины покупок."""
+        """Добавляет/удаляет рецепт из корзины покупок."""
         recipe = get_object_or_404(Recipe, pk=pk)
-        deleted, _ = ShoppingList.objects.filter(
-            user=request.user, recipe=recipe
-        ).delete()
-        return Response(
-            status=status.HTTP_204_NO_CONTENT if deleted
-            else status.HTTP_400_BAD_REQUEST
-        )
+        user = request.user
+
+        if request.method == 'POST':
+            try:
+                shopping_list, created = ShoppingList.objects.get_or_create(
+                    user=user, recipe=recipe)
+                if created:
+                    serializer = ShoppingListSerializer(shopping_list)
+                    return Response(serializer.data,
+                                    status=status.HTTP_201_CREATED)
+                else:
+                    return Response({"detail": "Рецепт уже в корзине."},
+                                    status=status.HTTP_400_BAD_REQUEST)
+
+            except Exception as e:
+                return Response({"detail": str(e)},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+        elif request.method == 'DELETE':
+            deleted, _ = ShoppingList.objects.filter(
+                user=user, recipe=recipe).delete()
+            if deleted:
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            else:
+                return Response({"detail": "Рецепт не найден в корзине."},
+                                status=status.HTTP_404_NOT_FOUND)
+
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
     @action(detail=False, methods=('get',),
             permission_classes=(permissions.IsAuthenticated,))
