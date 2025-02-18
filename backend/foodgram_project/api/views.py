@@ -309,14 +309,3 @@ class RecipeViewSet(viewsets.ModelViewSet):
         )
         short_link = request.build_absolute_uri(short_url_path)
         return Response({'short-link': short_link}, status=status.HTTP_200_OK)
-
-    def handle_favorite_or_cart(self, request, pk, serializer_class):
-        """Внутренний метод для добавления рецепта в избранное или корзину."""
-        recipe = get_object_or_404(Recipe, id=pk)
-        serializer = serializer_class(
-            data={'user': request.user.id, 'recipe': recipe.id},
-            context=self.get_serializer_context()
-        )
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
