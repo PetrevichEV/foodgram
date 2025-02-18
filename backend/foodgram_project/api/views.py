@@ -6,15 +6,12 @@ from rest_framework.exceptions import ValidationError
 from django.conf import settings
 from django.shortcuts import get_object_or_404, redirect
 from django.http import HttpResponseNotFound
-from django.core.cache import cache
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.reverse import reverse
 import logging
 
-hashids = Hashids(salt=settings.HASHIDS_SALT, min_length=8)
 
 from djoser.views import UserViewSet as DjoserUserViewSet
 
@@ -312,14 +309,15 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def get_link(self, request, pk=None):
         """Генерирует короткую ссылку на рецепт."""
         recipe = self.get_object()
+        hashids = Hashids(salt=settings.HASHIDS_SALT, min_length=8)
         short_id = hashids.encode(recipe.pk)
-
         short_link = f'{settings.BASE_URL}/s/{short_id}'
         return Response({'short-link': short_link})
 
 
 def redirect_to_recipe(request, short_id):
     """Перенаправляет на страницу рецепта по короткой ссылке."""
+    hashids = Hashids(salt=settings.HASHIDS_SALT, min_length=8)
     try:
         recipe_id = hashids.decode(short_id)[0]
         recipe = get_object_or_404(Recipe, pk=recipe_id)
