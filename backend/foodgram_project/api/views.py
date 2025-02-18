@@ -319,7 +319,6 @@ def redirect_to_recipe(request, short_id):
     recipe_id = cache.get(short_id)
 
     if recipe_id:
-        recipe = get_object_or_404(Recipe, pk=recipe_id)
-        return redirect(f'/recipes/{recipe.pk}/')
+        return redirect(f'/recipes/{recipe_id}/')
     else:
         return HttpResponseNotFound('Рецепт не найден')
