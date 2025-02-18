@@ -9,6 +9,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', '89.169.163.125', 'foodgrampetrevich.hopto.org']
 
+BASE_URL = 'http://foodgrampetrevich.hopto.org'
+
 CSRF_COOKIE_SECURE = True
 
 INSTALLED_APPS = [
