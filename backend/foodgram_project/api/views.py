@@ -307,7 +307,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     )
     def get_link(self, request, pk=None):
         """Генерирует короткую ссылку на рецепт."""
-        recipe = get_object_or_404(Recipe, pk=pk)
+        recipe = self.get_object()
         short_id = str(uuid.uuid4())[:8]
         cache.set(short_id, recipe.pk, timeout=3600)
         short_link = f'{settings.BASE_URL}/s/{short_id}'
@@ -319,8 +319,7 @@ def redirect_to_recipe(request, short_id):
     recipe_id = cache.get(short_id)
 
     if recipe_id:
-        return redirect(
-            f'http://foodgrampetrevich.hopto.org/recipes/{recipe_id}/'
-        )
+        recipe = get_object_or_404(Recipe, pk=recipe_id)
+        return HttpResponseNotFound(f'/recipes/{recipe.pk}/')
     else:
         return HttpResponseNotFound('Рецепт не найден')
