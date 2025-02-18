@@ -80,6 +80,9 @@ class Recipe(models.Model):
         upload_to='food_recipes/',
         verbose_name='Изображение'
     )
+    short_url = models.SlugField(
+        unique=True, max_length=32
+    )
 
     class Meta:
         verbose_name = 'Рецепт'
