@@ -146,3 +146,5 @@ CACHES = {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     }
 }
+
+HASHIDS_SALT = "salt"

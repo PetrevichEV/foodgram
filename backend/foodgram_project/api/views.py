@@ -1,4 +1,4 @@
-import uuid
+from hashids import Hashids
 from django.contrib.auth import get_user_model
 from django.db.models import Exists, F, OuterRef, Sum
 from django.http import FileResponse
@@ -14,6 +14,7 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 import logging
 
+hashids = Hashids(salt=settings.HASHIDS_SALT, min_length=8)
 
 from djoser.views import UserViewSet as DjoserUserViewSet
 
@@ -311,19 +312,17 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def get_link(self, request, pk=None):
         """Генерирует короткую ссылку на рецепт."""
         recipe = self.get_object()
-        short_id = str(uuid.uuid4())[:8]
-        cache.set(short_id, recipe.pk, timeout=3600)
-        logger.info(f"Создана короткая ссылка: {short_id} -> {recipe.pk}")
+        short_id = hashids.encode(recipe.pk)
+
         short_link = f'{settings.BASE_URL}/s/{short_id}'
         return Response({'short-link': short_link})
 
 
 def redirect_to_recipe(request, short_id):
     """Перенаправляет на страницу рецепта по короткой ссылке."""
-    recipe_id = cache.get(short_id)
-
-    if recipe_id:
+    try:
+        recipe_id = hashids.decode(short_id)[0]
         recipe = get_object_or_404(Recipe, pk=recipe_id)
         return redirect(f'/recipes/{recipe.pk}/')
-    else:
+    except (IndexError, ValueError):
         return HttpResponseNotFound('Рецепт не найден')
