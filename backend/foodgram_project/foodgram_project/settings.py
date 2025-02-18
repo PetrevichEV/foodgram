@@ -140,3 +140,9 @@ DJOSER = {
         'current_user': 'api.serializers.UserSerializer',
     },
 }
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+}
