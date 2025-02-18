@@ -322,6 +322,6 @@ def redirect_to_recipe(request, short_id):
 
     if decoded_id:
         recipe_id = decoded_id[0]
-        return redirect(f'/recipes/{recipe_id}/')
+        return redirect(f'/{recipe_id}/')
 
     return HttpResponseNotFound('Рецепт не найден')
