@@ -1,32 +1,31 @@
 from django.contrib.auth import get_user_model
 from django.db.models import Exists, F, OuterRef, Sum
 from django.http import FileResponse
-from rest_framework.exceptions import ValidationError
 
-from django.shortcuts import get_object_or_404
-
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
+from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
+from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
 
 from .filters import IngredientFilter, RecipeFilter
 from .pagination import PagePaginator
 from .permissions import IsOwnerOrReadOnly
 from .serializers import (
-    IngredientSerializer,
+    FavoriteSerializer,
     IngredientForRecipe,
+    IngredientSerializer,
     RecipeNewSerializer,
     RecipeSerializer,
-    UserSubscriptionSerializer,
+    ShoppingListSerializer,
     SubscriptionSerializer,
     TagSerializer,
     UserSerializer,
-    FavoriteSerializer,
-    ShoppingListSerializer,
+    UserSubscriptionSerializer,
 )
 from food_recipes.models import (
     Favourites,
@@ -103,7 +102,7 @@ class UserViewSet(DjoserUserViewSet):
 
     @action(
         detail=True,
-        methods=['POST', 'DELETE'],
+        methods=('POST', 'DELETE'),
         url_path='subscribe',
         url_name='subscribe',
         permission_classes=[permissions.IsAuthenticated],
@@ -199,7 +198,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(
         detail=True,
-        methods=['POST', 'DELETE'],
+        methods=('post', 'delete'),
         url_path='favorite',
         url_name='favorite',
         permission_classes=[permissions.IsAuthenticated])
@@ -208,7 +207,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipe = get_object_or_404(Recipe, pk=pk)
         user = request.user
 
-        if request.method == 'POST':
+        if request.method == 'post':
             try:
                 favorite, created = Favourites.objects.get_or_create(
                     user=user, recipe=recipe)
@@ -223,7 +222,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             except Exception as e:
                 return Response({"detail": str(e)},
                                 status=status.HTTP_400_BAD_REQUEST)
-        elif request.method == 'DELETE':
+        elif request.method == 'delete':
             deleted, _ = Favourites.objects.filter(
                 user=user, recipe=recipe).delete()
             if deleted:
