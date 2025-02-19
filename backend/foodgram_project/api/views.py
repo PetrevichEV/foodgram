@@ -311,7 +311,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         try:
             short_link_obj = ShortLink.objects.get(recipe=recipe)
             short_id = short_link_obj.short_id
-            short_link = f'{settings.BASE_URL}/s/{short_id}'
+            short_link = f'{settings.BASE_URL}/api/s/{short_id}'
             return Response({'short-link': short_link})
         except ShortLink.DoesNotExist:
             short_id = hashids.encode(recipe.pk)
