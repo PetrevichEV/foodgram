@@ -81,6 +81,9 @@ class Recipe(models.Model):
         verbose_name='Изображение'
     )
 
+    def get_absolute_url(self):
+        return f"/api/recipes/{self.pk}/" 
+    
     class Meta:
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'

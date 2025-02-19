@@ -10,8 +10,6 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-import logging
-
 
 from djoser.views import UserViewSet as DjoserUserViewSet
 
@@ -39,7 +37,7 @@ from food_recipes.models import (
 )
 from users.models import Subscription
 
-logger = logging.getLogger(__name__)
+hashids = Hashids(salt=settings.HASHIDS_SALT, min_length=3)
 
 User = get_user_model()
 
@@ -309,19 +307,17 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def get_link(self, request, pk=None):
         """Генерирует короткую ссылку на рецепт."""
         recipe = self.get_object()
-        hashids = Hashids(salt=settings.HASHIDS_SALT, min_length=8)
-        short_id = hashids.encode(recipe.id)
+        short_id = hashids.encode(recipe.pk)
         short_link = f'{settings.BASE_URL}/s/{short_id}'
         return Response({'short-link': short_link})
 
 
 def redirect_to_recipe(request, short_id):
     """Перенаправляет на страницу рецепта по короткой ссылке."""
-    hashids = Hashids(salt=settings.HASHIDS_SALT, min_length=8)
-    decoded_id = hashids.decode(short_id)
-
-    if decoded_id:
-        recipe_id = decoded_id[0]
-        return redirect(f'/{recipe_id}/')
-
-    return HttpResponseNotFound('Рецепт не найден')
+    try:
+        recipe_id = hashids.decode(short_id)[0]
+        recipe = get_object_or_404(Recipe, pk=recipe_id)
+        recipe_url = f"{settings.BASE_URL}/api/recipes/{recipe.pk}/"
+        return redirect(recipe_url)
+    except (IndexError, ValueError):
+        return HttpResponseNotFound('Рецепт не найден')
