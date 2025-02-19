@@ -1,15 +1,17 @@
-from hashids import Hashids
+from django.http import HttpResponse, HttpResponseNotFound
+
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db.models import Exists, OuterRef, Sum
-from rest_framework.exceptions import ValidationError
-from django.conf import settings
 from django.shortcuts import get_object_or_404, redirect
-from django.http import HttpResponseNotFound
-from django_filters.rest_framework import DjangoFilterBackend
+
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
-from django.http import HttpResponse
+
+from django_filters.rest_framework import DjangoFilterBackend
+from hashids import Hashids
 
 from djoser.views import UserViewSet as DjoserUserViewSet
 
@@ -17,31 +19,29 @@ from .filters import IngredientFilter, RecipeFilter
 from .pagination import PagePaginator
 from .permissions import IsOwnerOrReadOnly
 from .serializers import (
+    FavoriteSerializer,
     IngredientSerializer,
     RecipeNewSerializer,
     RecipeSerializer,
-    UserSubscriptionSerializer,
+    ShoppingListSerializer,
     SubscriptionSerializer,
     TagSerializer,
     UserSerializer,
-    FavoriteSerializer,
-    ShoppingListSerializer,
+    UserSubscriptionSerializer,
 )
 from food_recipes.models import (
     Favourites,
     Ingredient,
     Recipe,
     ShoppingList,
-    Tag,
     ShortLink,
+    Tag,
 )
 from users.models import Subscription
 
 hashids = Hashids(salt=settings.HASHIDS_SALT, min_length=3)
 
 User = get_user_model()
-
-FILE_NAME = 'shopping_list.txt'
 
 
 class UserViewSet(DjoserUserViewSet):
@@ -72,30 +72,20 @@ class UserViewSet(DjoserUserViewSet):
     )
     def avatar(self, request):
         """Добавление/обновление и удаление аватара."""
-        user = request.user
-
         if request.method == 'PUT':
             serializer = UserSerializer(
-                user,
+                request.user,
                 data=request.data,
-                partial=True,
-                context={'request': request}
+                partial=True
             )
-            try:
-                serializer.is_valid(raise_exception=True)
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            except ValidationError as e:
-                return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
         elif request.method == 'DELETE':
-            if user.avatar:
-                user.avatar.delete()
-                user.save()
-                return Response(status=status.HTTP_204_NO_CONTENT)
-            else:
-                return Response({"detail": "У пользователя нет аватара."},
-                                status=status.HTTP_404_NOT_FOUND)
+            request.user.avatar.delete()
+            request.user.save()
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
@@ -303,7 +293,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         filename = f"{user.username}_shopping_list.txt"
         content = "\n".join([
-            f"{item['recipe__ingredients__name']} - {item['total_amount']} {item['recipe__ingredients__measurement_unit']}"
+            f"{item['recipe__ingredients__name']} - {item['total_amount']} "
+            f"{item['recipe__ingredients__measurement_unit']}"
             for item in ingredients
         ])
 
