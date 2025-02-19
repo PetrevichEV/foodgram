@@ -1,4 +1,5 @@
 from django.db import transaction
+from drf_base64.fields import Base64ImageField
 from django.contrib.auth import get_user_model
 from djoser.serializers import (UserCreateSerializer,
                                 UserSerializer as DjoserSerializer)
@@ -89,6 +90,21 @@ class UserSubscriptionSerializer(UserSerializer):
         return RecipeForSubscriptionSerializer(queryset, many=True,
                                                context=self.context).data
 
+
+
+class AvatarSerializer(serializers.ModelSerializer):
+    """Отображение аватара."""
+
+    avatar = Base64ImageField(allow_null=True)
+
+    class Meta:
+        model = User
+        fields = ('avatar',)
+
+    def validate(self, data):
+        if 'avatar' not in data:
+            raise serializers.ValidationError('Обязательгое поле.')
+        return data
 
 class RecipeForSubscriptionSerializer(serializers.ModelSerializer):
 

@@ -19,6 +19,7 @@ from .filters import IngredientFilter, RecipeFilter
 from .pagination import PagePaginator
 from .permissions import IsOwnerOrReadOnly
 from .serializers import (
+    AvatarSerializer,
     FavoriteSerializer,
     IngredientSerializer,
     RecipeNewSerializer,
@@ -71,7 +72,7 @@ class UserViewSet(DjoserUserViewSet):
     )
     def avatar(self, request):
         """Добавление/обновление аватара."""
-        serializer = UserSerializer(
+        serializer = AvatarSerializer(
             request.user,
             data=request.data,
             partial=True
