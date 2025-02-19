@@ -80,7 +80,7 @@ class UserViewSet(DjoserUserViewSet):
             )
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.data)
 
         elif request.method == 'DELETE':
             request.user.avatar.delete()
