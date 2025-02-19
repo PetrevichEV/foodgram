@@ -1,7 +1,6 @@
 from hashids import Hashids
 from django.contrib.auth import get_user_model
-from django.db.models import Exists, F, OuterRef, Sum
-from django.http import FileResponse
+from django.db.models import Exists, OuterRef, Sum
 from rest_framework.exceptions import ValidationError
 from django.conf import settings
 from django.shortcuts import get_object_or_404, redirect
@@ -10,6 +9,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from django.http import HttpResponse
 
 from djoser.views import UserViewSet as DjoserUserViewSet
 
@@ -18,7 +18,6 @@ from .pagination import PagePaginator
 from .permissions import IsOwnerOrReadOnly
 from .serializers import (
     IngredientSerializer,
-    IngredientForRecipe,
     RecipeNewSerializer,
     RecipeSerializer,
     UserSubscriptionSerializer,
@@ -274,30 +273,31 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
-    @action(detail=False, methods=('get',),
-            permission_classes=(permissions.IsAuthenticated,))
+    @action(
+        detail=False,
+        methods=['GET'],
+        url_path='download_shopping_cart',
+        url_name='download_shopping_cart',
+        permission_classes=[permissions.IsAuthenticated]
+    )
     def download_shopping_cart(self, request):
-        """Скачивает файл со списком покупок для текущего пользователя."""
-        ingredients = (
-            IngredientForRecipe.objects.filter(
-                recipe__shopping_cart__user=request.user
-            )
-            .values(
-                name=F('ingredient__name'),
-                unit=F('ingredient__measurement_unit')
-            )
-            .annotate(total_amount=Sum('amount'))
-            .order_by('name')
-        )
-        file_lines = [
-            f'{ingredient["name"]} ({ingredient["unit"]}) — '
-            f'{ingredient["total_amount"]}'
-            for ingredient in ingredients
-        ]
+        """Скачивает список покупок для текущего пользователя."""
+        user = request.user
 
-        file_content = 'Список покупок:\n' + '\n'.join(file_lines)
-        response = FileResponse(file_content, content_type='text/plain')
-        response['Content-Disposition'] = f'attachment; filename="{FILE_NAME}"'
+        ingredients = ShoppingList.objects.filter(user=user).values(
+            'recipe__ingredients__name',
+            'recipe__ingredients__measurement_unit'
+        ).annotate(total_amount=Sum('recipe__recipe_ingredients__amount'))
+
+        filename = f"{user.username}_shopping_list.txt"
+        content = "\n".join([
+            f"{item['recipe__ingredients__name']} - {item['total_amount']} {item['recipe__ingredients__measurement_unit']}"
+            for item in ingredients
+        ])
+
+        response = HttpResponse(
+            content, content_type='text/plain; charset=utf-8')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response
 
     @action(
