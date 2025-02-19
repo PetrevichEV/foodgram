@@ -65,11 +65,11 @@ class UserViewSet(DjoserUserViewSet):
 
     @action(
         detail=False,
-        methods=['PUT'],
+        methods=('put',),
         url_path='me/avatar',
-        permission_classes=[permissions.IsAuthenticated],
+        permission_classes=(permissions.IsAuthenticated,),
     )
-    def update_avatar(self, request):
+    def avatar(self, request):
         """Добавление/обновление аватара."""
         serializer = UserSerializer(
             request.user,
@@ -80,20 +80,12 @@ class UserViewSet(DjoserUserViewSet):
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @action(
-        detail=False,
-        methods=['DELETE'],
-        url_path='me/avatar',
-        permission_classes=[permissions.IsAuthenticated],
-    )
+    @avatar.mapping.delete
     def delete_avatar(self, request):
         """Удаление аватара."""
-        if request.user.avatar:
-            request.user.avatar.delete()
-            request.user.save()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        else:
-            return Response({"detail": "У пользователя нет аватара."}, status=status.HTTP_404_NOT_FOUND)
+        request.user.avatar.delete()
+        request.user.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
         detail=False,
