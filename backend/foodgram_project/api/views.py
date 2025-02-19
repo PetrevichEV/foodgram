@@ -66,27 +66,29 @@ class UserViewSet(DjoserUserViewSet):
 
     @action(
         detail=False,
-        methods=('put',),
+        methods=['PUT', 'DELETE'],
         url_path='me/avatar',
-        permission_classes=(permissions.IsAuthenticated,),
+        url_name='avatar',
+        permission_classes=[permissions.IsAuthenticated],
     )
     def avatar(self, request):
-        """Добавление/обновление аватара."""
-        serializer = AvatarSerializer(
-            request.user,
-            data=request.data,
-            partial=True
-        )
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        """Добавление/обновление и удаление аватара."""
+        if request.method == 'PUT':
+            serializer = AvatarSerializer(
+                request.user,
+                data=request.data,
+                partial=True
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @avatar.mapping.delete
-    def delete_avatar(self, request):
-        """Удаление аватара."""
-        request.user.avatar.delete()
-        request.user.save()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        elif request.method == 'DELETE':
+            request.user.avatar.delete()
+            request.user.save()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
     @action(
         detail=False,
