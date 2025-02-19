@@ -36,6 +36,7 @@ class User(AbstractUser):
         verbose_name='Аватар',
         null=True,
         default=None,
+        blank=True,
         upload_to='avatars'
     )
 
