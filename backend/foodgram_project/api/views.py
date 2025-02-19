@@ -34,6 +34,7 @@ from food_recipes.models import (
     Recipe,
     ShoppingList,
     Tag,
+    ShortLink,
 )
 from users.models import Subscription
 
@@ -308,6 +309,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """Генерирует короткую ссылку на рецепт."""
         recipe = self.get_object()
         short_id = hashids.encode(recipe.pk)
+
+        ShortLink.objects.create(short_id=short_id, recipe=recipe)
+
         short_link = f'{settings.BASE_URL}/s/{short_id}'
         return Response({'short-link': short_link})
 
@@ -315,9 +319,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 def redirect_to_recipe(request, short_id):
     """Перенаправляет на страницу рецепта по короткой ссылке."""
     try:
-        recipe_id = hashids.decode(short_id)[0]
-        recipe = get_object_or_404(Recipe, pk=recipe_id)
-        recipe_url = f"{settings.BASE_URL}/api/recipes/{recipe.pk}/"
-        return redirect(recipe_url)
-    except (IndexError, ValueError):
+        short_link_obj = ShortLink.objects.get(short_id=short_id)
+        return redirect(short_link_obj.recipe.get_absolute_url())
+    except ShortLink.DoesNotExist:
         return HttpResponseNotFound('Рецепт не найден')

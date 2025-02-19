@@ -11,6 +11,7 @@ User = get_user_model()
 
 MIN_AMOUNT = 1
 
+
 class Tag(models.Model):
     """Модель тагов."""
     name = models.CharField(
@@ -82,8 +83,8 @@ class Recipe(models.Model):
     )
 
     def get_absolute_url(self):
-        return f"/api/recipes/{self.pk}/" 
-    
+        return f"/api/recipes/{self.pk}/"
+
     class Meta:
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
@@ -153,3 +154,12 @@ class ShoppingList(models.Model):
 
     def __str__(self):
         return f'{self.user},{self.recipe}'
+
+
+class ShortLink(models.Model):
+    short_id = models.CharField(max_length=8, unique=True, db_index=True)
+    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.short_id} -> {self.recipe.pk}"
