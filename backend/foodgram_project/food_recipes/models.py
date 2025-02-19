@@ -83,7 +83,7 @@ class Recipe(models.Model):
     )
 
     def get_absolute_url(self):
-        return f"/recipes/{self.pk}/"
+        return f"/recipes/{self.pk}"
 
     class Meta:
         verbose_name = 'Рецепт'
