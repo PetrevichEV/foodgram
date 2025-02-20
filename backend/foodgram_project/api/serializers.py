@@ -91,7 +91,6 @@ class UserSubscriptionSerializer(UserSerializer):
                                                context=self.context).data
 
 
-
 class AvatarSerializer(serializers.ModelSerializer):
     """Отображение аватара."""
 
@@ -103,8 +102,9 @@ class AvatarSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         if 'avatar' not in data:
-            raise serializers.ValidationError('Обязательгое поле.')
+            raise serializers.ValidationError("Обязательгое поле.")
         return data
+
 
 class RecipeForSubscriptionSerializer(serializers.ModelSerializer):
 
@@ -226,7 +226,7 @@ class ShoppingListSerializer(serializers.ModelSerializer):
         recipe = data['recipe']
         if ShoppingList.objects.filter(user=user, recipe=recipe).exists():
             raise serializers.ValidationError(
-                'Рецепт уже добавлен в корзину покупок!'
+                "Рецепт уже добавлен в корзину покупок!"
             )
         return data
 
@@ -247,29 +247,17 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     author = UserSerializer(read_only=True)
     tags = TagSerializer(many=True, read_only=True)
-    ingredients = IngredientForRecipeSerializer(
-        many=True,
-        read_only=True,
-        source='recipe_ingredients'
-    )
+    ingredients = IngredientForRecipeSerializer(many=True, read_only=True,
+                                                source='recipe_ingredients')
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
     image = Base64ImageField()
 
     class Meta:
         model = Recipe
-        fields = (
-            'id',
-            'tags',
-            'author',
-            'ingredients',
-            'is_favorited',
-            'is_in_shopping_cart',
-            'name',
-            'image',
-            'text',
-            'cooking_time',
-        )
+        fields = ('id', 'tags', 'author', 'ingredients',
+                  'is_favorited', 'is_in_shopping_cart',
+                  'name', 'image', 'text', 'cooking_time')
 
     def get_is_favorited(self, obj):
         user = self.context['request'].user
@@ -288,51 +276,35 @@ class RecipeNewSerializer(serializers.ModelSerializer):
     """Создание рецептов."""
 
     tags = serializers.PrimaryKeyRelatedField(
-        many=True,
-        queryset=Tag.objects.all(),
-        allow_empty=False,
-        label="Теги",
+        many=True, queryset=Tag.objects.all(), allow_empty=False
     )
-    author = UserSerializer(
-        read_only=True,
-        label="Автор"
-    )
+    author = UserSerializer(read_only=True,)
     ingredients = IngredientForRecipeCreateSerializer(
-        many=True,
-        allow_empty=False,
-        label="Ингредиенты",
+        many=True, allow_empty=False,
     )
-    image = Base64ImageField(label="Изображение")
+    image = Base64ImageField()
 
     class Meta:
         model = Recipe
-        fields = (
-            'id',
-            'ingredients',
-            'tags',
-            'image',
-            'name',
-            'text',
-            'cooking_time',
-            'author',
-        )
+        fields = ('id', 'ingredients', 'tags', 'image',
+                  'name', 'text', 'cooking_time', 'author')
 
     def validate(self, data):
         if not data.get('tags'):
-            raise serializers.ValidationError('Укажите теги.')
+            raise serializers.ValidationError("Укажите теги.")
         if len(set(data['tags'])) != len(data['tags']):
-            raise serializers.ValidationError('Теги не уникальны.')
+            raise serializers.ValidationError("Теги не уникальны.")
 
         if not data.get('ingredients'):
-            raise serializers.ValidationError('Укажите ингредиенты.')
+            raise serializers.ValidationError("Укажите ингредиенты.")
         ingredient_ids = [i['ingredient'].id for i in data['ingredients']]
         if len(set(ingredient_ids)) != len(ingredient_ids):
-            raise serializers.ValidationError('Ингредиенты не уникальны.')
+            raise serializers.ValidationError("Ингредиенты не уникальны.")
         return data
 
     def validate_image(self, img):
         if not img:
-            raise serializers.ValidationError('Нужно изображение.')
+            raise serializers.ValidationError("Нужно изображение.")
         return img
 
     @staticmethod

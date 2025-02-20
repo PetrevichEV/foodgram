@@ -28,7 +28,7 @@ from .serializers import (
     SubscriptionSerializer,
     TagSerializer,
     UserSerializer,
-    UserSubscriptionSerializer,
+    UserSubscriptionSerializer
 )
 from food_recipes.models import (
     Favourites,
@@ -36,7 +36,7 @@ from food_recipes.models import (
     Recipe,
     ShoppingList,
     ShortLink,
-    Tag,
+    Tag
 )
 from users.models import Subscription
 
@@ -66,7 +66,7 @@ class UserViewSet(DjoserUserViewSet):
 
     @action(
         detail=False,
-        methods=['PUT', 'DELETE'],
+        methods=('PUT', 'DELETE'),
         url_path='me/avatar',
         url_name='avatar',
         permission_classes=[permissions.IsAuthenticated],
@@ -92,7 +92,7 @@ class UserViewSet(DjoserUserViewSet):
 
     @action(
         detail=False,
-        methods=['GET'],
+        methods=('GET',),
         url_path='subscriptions',
         url_name='subscriptions',
         permission_classes=[permissions.IsAuthenticated],
@@ -107,7 +107,7 @@ class UserViewSet(DjoserUserViewSet):
 
     @action(
         detail=True,
-        methods=['POST', 'DELETE'],
+        methods=('POST', 'DELETE'),
         url_path='subscribe',
         url_name='subscribe',
         permission_classes=[permissions.IsAuthenticated],
@@ -169,7 +169,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
     pagination_class = PagePaginator
-    http_method_names = ('get', 'post', 'patch', 'delete')
+    http_method_names = ('GET', 'POST', 'PATH', 'DELETE')
 
     def _annotate_favorite(self, queryset, user):
         """Добавляем поле is_favorited."""
@@ -239,7 +239,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(
         detail=True,
-        methods=['POST', 'DELETE'],
+        methods=('POST', 'DELETE'),
         url_path='shopping_cart',
         url_name='shopping_cart',
         permission_classes=[permissions.IsAuthenticated]
@@ -278,7 +278,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(
         detail=False,
-        methods=['GET'],
+        methods=('GET',),
         url_path='download_shopping_cart',
         url_name='download_shopping_cart',
         permission_classes=[permissions.IsAuthenticated]
@@ -306,7 +306,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(
         detail=True,
-        methods=['GET'],
+        methods=('GET',),
         url_path='get-link'
     )
     def get_link(self, request, pk=None):

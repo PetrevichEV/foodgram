@@ -11,7 +11,7 @@ class User(AbstractUser):
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ('username', 'first_name',
-                       'last_name',)
+                       'last_name')
 
     email = models.EmailField(
         verbose_name='Электронная почта',
@@ -70,7 +70,7 @@ class Subscription(models.Model):
         unique_together = ('user', 'author')
         constraints = [
             models.UniqueConstraint(
-                fields=['user', 'author'],
+                fields=('user', 'author'),
                 name='unique_subscriptions_model'
             )
         ]
