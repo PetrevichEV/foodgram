@@ -169,7 +169,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
     pagination_class = PagePaginator
-    http_method_names = ('GET', 'POST', 'PATH', 'DELETE')
+    http_method_names = ('get', 'post', 'patch', 'delete')
 
     def _annotate_favorite(self, queryset, user):
         """Добавляем поле is_favorited."""
