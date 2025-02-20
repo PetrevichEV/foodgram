@@ -4,6 +4,7 @@ import os
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.db.utils import IntegrityError
+
 from food_recipes.models import Ingredient
 
 DATA_ROOT = os.path.join(settings.BASE_DIR, 'static/data/')
@@ -27,6 +28,6 @@ class Command(BaseCommand):
                     except IntegrityError:
                         pass
                 self.stdout.write(self.style.SUCCESS(
-                            'Файл загружен успешно'))
+                            "Файл загружен успешно"))
         except FileNotFoundError:
-            raise CommandError('Файл не найден')
+            raise CommandError("Файл не найден")

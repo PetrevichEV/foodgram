@@ -55,7 +55,7 @@ class UserViewSet(DjoserUserViewSet):
 
     @action(
         detail=False,
-        methods=('get',),
+        methods=('GET',),
         permission_classes=(permissions.IsAuthenticated,)
     )
     def me(self, request):
@@ -306,7 +306,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(
         detail=True,
-        methods=('GET',),
+        methods=['GET'],
         url_path='get-link'
     )
     def get_link(self, request, pk=None):
@@ -331,4 +331,4 @@ def redirect_to_recipe(request, short_id):
         short_link_obj = ShortLink.objects.get(short_id=short_id)
         return redirect(short_link_obj.recipe.get_absolute_url())
     except ShortLink.DoesNotExist:
-        return HttpResponseNotFound('Рецепт не найден')
+        return HttpResponseNotFound("Рецепт не найден.")
