@@ -141,7 +141,7 @@ class UserViewSet(DjoserUserViewSet):
             except Subscription.DoesNotExist:
                 return Response(
                     {"detail": "Вы не подписаны на этого пользователя."},
-                    status=status.HTTP_404_NOT_FOUND)
+                    status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
@@ -156,8 +156,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = (permissions.AllowAny,)
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('^name',)
+    filter_backends = (DjangoFilterBackend,)
     filterset_class = IngredientFilter
     pagination_class = None
 
@@ -234,7 +233,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 return Response(status=status.HTTP_204_NO_CONTENT)
             else:
                 return Response({"detail": "Рецепт не найден в избранном."},
-                                status=status.HTTP_404_NOT_FOUND)
+                                status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
     @action(
@@ -272,7 +271,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 return Response(status=status.HTTP_204_NO_CONTENT)
             else:
                 return Response({"detail": "Рецепт не найден в корзине."},
-                                status=status.HTTP_404_NOT_FOUND)
+                                status=status.HTTP_400_BAD_REQUEST)
 
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
