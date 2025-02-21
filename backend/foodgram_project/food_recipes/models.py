@@ -4,9 +4,15 @@ from django.db import models
 
 from .validators import validate_slug
 
-User = get_user_model()
+from foodgram_project.settings import (
+    MIN_AMOUNT,
+    SHORT_ID_MAX_LENGTH,
+    NAME_RECIPE_MAX_LENGTH,
+    MEASUREMENT_UNIT_MAX_LENGTH,
+    NAME_INGREDIENT_MAX_LENGTH,
+)
 
-MIN_AMOUNT = 1
+User = get_user_model()
 
 
 class Tag(models.Model):
@@ -33,11 +39,11 @@ class Tag(models.Model):
 class Ingredient(models.Model):
     """Модель ингридиентов."""
     name = models.CharField(
-        max_length=128,
+        max_length=NAME_INGREDIENT_MAX_LENGTH,
         verbose_name='Название'
     )
     measurement_unit = models.CharField(
-        max_length=64,
+        max_length=MEASUREMENT_UNIT_MAX_LENGTH,
         verbose_name='Единица измерения'
     )
 
@@ -58,7 +64,7 @@ class Recipe(models.Model):
         verbose_name='Автор'
     )
     name = models.CharField(
-        max_length=256,
+        max_length=NAME_RECIPE_MAX_LENGTH,
         verbose_name='Название'
     )
     text = models.TextField(
@@ -158,7 +164,7 @@ class ShoppingList(models.Model):
 
 class ShortLink(models.Model):
     short_id = models.CharField(
-        max_length=8,
+        max_length=SHORT_ID_MAX_LENGTH,
         unique=True,
         db_index=True
     )
