@@ -26,6 +26,9 @@ class Tag(models.Model):
         verbose_name = 'Тег'
         verbose_name_plural = 'Теги'
 
+    def __str__(self):
+        return self.name
+
 
 class Ingredient(models.Model):
     """Модель ингридиентов."""
@@ -154,9 +157,22 @@ class ShoppingList(models.Model):
 
 
 class ShortLink(models.Model):
-    short_id = models.CharField(max_length=8, unique=True, db_index=True)
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now_add=True)
+    short_id = models.CharField(
+        max_length=8,
+        unique=True,
+        db_index=True
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    class Meta:
+        verbose_name = 'Короткая ссылка'
+        verbose_name_plural = 'Короткие ссылки'
 
     def __str__(self):
         return f"{self.short_id} -> {self.recipe.pk}"

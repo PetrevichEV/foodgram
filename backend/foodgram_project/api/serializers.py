@@ -1,13 +1,9 @@
-from django.db import transaction
 from drf_base64.fields import Base64ImageField
 from django.contrib.auth import get_user_model
 from djoser.serializers import (UserCreateSerializer,
                                 UserSerializer as DjoserSerializer)
 
 from rest_framework import serializers
-
-
-from drf_base64.fields import Base64ImageField
 
 from food_recipes.models import (
     Ingredient,
@@ -327,7 +323,6 @@ class RecipeNewSerializer(serializers.ModelSerializer):
             ingredient_for_recipes
         )
 
-    @transaction.atomic
     def create(self, validated_data):
         """Создание рецепта."""
         tags = validated_data.pop('tags')
@@ -341,7 +336,6 @@ class RecipeNewSerializer(serializers.ModelSerializer):
         self.add_ingredients(recipe, ingredients)
         return recipe
 
-    @transaction.atomic
     def update(self, instance, validated_data):
         """Обновление рецепта."""
         ingredients = validated_data.pop('ingredients')

@@ -12,15 +12,13 @@ class TagAdmin(admin.ModelAdmin):
 @admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
     list_display = ('id', 'name')
-
     search_fields = ('name',)
 
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'author', 'tags_list', 'added_favorites')
-
-    search_fields = ('author', 'name')
+    search_fields = ('name', 'author__username')
     list_filter = ('tags',)
     readonly_fields = ('added_favorites',)
 
@@ -33,6 +31,7 @@ class RecipeAdmin(admin.ModelAdmin):
     @admin.display(description='Теги')
     def tags_list(self, obj):
         return ', '.join([tags.name for tags in obj.tags.all()])
+
 
 @admin.register(Favourites)
 class FavouritesAdmin(admin.ModelAdmin):

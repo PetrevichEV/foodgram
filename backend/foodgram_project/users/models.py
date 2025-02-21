@@ -19,7 +19,7 @@ class User(AbstractUser):
         max_length=EMAIL_MAX_LENGTH
     )
     username = models.CharField(
-        verbose_name='Юзернейм',
+        verbose_name='Имя пользователя',
         unique=True,
         validators=[UnicodeUsernameValidator()],
         max_length=FIELD_MAX_LENGTH,
