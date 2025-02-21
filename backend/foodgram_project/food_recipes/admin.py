@@ -18,7 +18,7 @@ class IngredientAdmin(admin.ModelAdmin):
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'author', 'tags', 'added_favorites')
+    list_display = ('id', 'name', 'author', 'tags_list', 'added_favorites')
 
     search_fields = ('author', 'name')
     list_filter = ('tags',)
@@ -30,6 +30,9 @@ class RecipeAdmin(admin.ModelAdmin):
 
     added_favorites.short_description = 'Всего в избранном'
 
+    @admin.display(description='Теги')
+    def tags_list(self, obj):
+        return ', '.join([tags.name for tags in obj.tags.all()])
 
 @admin.register(Favourites)
 class FavouritesAdmin(admin.ModelAdmin):
