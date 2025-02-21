@@ -2,15 +2,15 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
 
-from .validators import validate_slug
-
 from foodgram_project.settings import (
-    MIN_AMOUNT,
-    SHORT_ID_MAX_LENGTH,
-    NAME_RECIPE_MAX_LENGTH,
     MEASUREMENT_UNIT_MAX_LENGTH,
+    MIN_AMOUNT,
     NAME_INGREDIENT_MAX_LENGTH,
+    NAME_RECIPE_MAX_LENGTH,
+    SHORT_ID_MAX_LENGTH,
 )
+
+from .validators import validate_slug
 
 User = get_user_model()
 

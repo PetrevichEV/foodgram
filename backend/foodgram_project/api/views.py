@@ -1,19 +1,25 @@
-from django.http import HttpResponse, HttpResponseNotFound
-
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db.models import Exists, OuterRef, Sum
+from django.http import HttpResponse, HttpResponseNotFound
 from django.shortcuts import get_object_or_404, redirect
-
-from rest_framework import filters, permissions, status, viewsets
+from django_filters.rest_framework import DjangoFilterBackend
+from djoser.views import UserViewSet as DjoserUserViewSet
+from hashids import Hashids
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
-from django_filters.rest_framework import DjangoFilterBackend
-from hashids import Hashids
-
-from djoser.views import UserViewSet as DjoserUserViewSet
+from food_recipes.models import (
+    Favourites,
+    Ingredient,
+    Recipe,
+    ShoppingList,
+    ShortLink,
+    Tag,
+)
+from users.models import Subscription
 
 from .filters import IngredientFilter, RecipeFilter
 from .pagination import PagePaginator
@@ -28,17 +34,8 @@ from .serializers import (
     SubscriptionSerializer,
     TagSerializer,
     UserSerializer,
-    UserSubscriptionSerializer
+    UserSubscriptionSerializer,
 )
-from food_recipes.models import (
-    Favourites,
-    Ingredient,
-    Recipe,
-    ShoppingList,
-    ShortLink,
-    Tag
-)
-from users.models import Subscription
 
 hashids = Hashids(salt=settings.HASHIDS_SALT, min_length=3)
 
