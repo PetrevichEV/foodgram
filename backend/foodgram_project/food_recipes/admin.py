@@ -18,10 +18,10 @@ class IngredientAdmin(admin.ModelAdmin):
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'author', 'tag', 'added_favorites')
+    list_display = ('id', 'name', 'author', 'tags', 'added_favorites')
 
     search_fields = ('author', 'name')
-    list_filter = ('tag',)
+    list_filter = ('tags',)
     readonly_fields = ('added_favorites',)
 
     def added_favorites(self, obj):
