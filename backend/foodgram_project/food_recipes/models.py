@@ -16,7 +16,7 @@ User = get_user_model()
 
 
 class Tag(models.Model):
-    """Модель тагов."""
+    """Модель тегов."""
     name = models.CharField(
         max_length=32,
         verbose_name='Название',
@@ -163,6 +163,7 @@ class ShoppingList(models.Model):
 
 
 class ShortLink(models.Model):
+    """Модель короткой ссылки."""
     short_id = models.CharField(
         max_length=SHORT_ID_MAX_LENGTH,
         unique=True,

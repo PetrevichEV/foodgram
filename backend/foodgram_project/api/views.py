@@ -43,7 +43,7 @@ User = get_user_model()
 
 
 class UserViewSet(DjoserUserViewSet):
-    """Вьюсет для управления текущим пользователем."""
+    """Вьюсет пользователя."""
 
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -115,7 +115,7 @@ class UserViewSet(DjoserUserViewSet):
         user = request.user
 
         if user == author:
-            return Response({"detail": "Вы не можете подписаться на себя."},
+            return Response({'detail': 'Вы не можете подписаться на себя!'},
                             status=status.HTTP_400_BAD_REQUEST)
 
         if request.method == 'POST':
@@ -137,12 +137,14 @@ class UserViewSet(DjoserUserViewSet):
                 return Response(status=status.HTTP_204_NO_CONTENT)
             except Subscription.DoesNotExist:
                 return Response(
-                    {"detail": "Вы не подписаны на этого пользователя."},
+                    {'detail': 'Вы не подписаны на этого пользователя!'},
                     status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
+    """Вьюсет тегов."""
+
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = (permissions.AllowAny,)
@@ -150,6 +152,8 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
+    """Вьюсет ингридиентов."""
+
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = (permissions.AllowAny,)
@@ -168,17 +172,17 @@ class RecipeViewSet(viewsets.ModelViewSet):
     http_method_names = ('get', 'post', 'patch', 'delete')
 
     def _annotate_favorite(self, queryset, user):
-        """Добавляем поле is_favorited."""
+        """Добавление поля is_favorited."""
         return queryset.annotate(is_favorited=Exists(Favourites.objects.filter(
             user=user, recipe=OuterRef('pk'))))
 
     def _annotate_shopping_cart(self, queryset, user):
-        """Добавляем поле is_in_shopping_cart."""
+        """Добавление поля is_in_shopping_cart."""
         return queryset.annotate(is_in_shopping_cart=Exists(
             ShoppingList.objects.filter(user=user, recipe=OuterRef('pk'))))
 
     def get_queryset(self):
-        """Получаем queryset рецептов."""
+        """Получение queryset рецептов."""
         current_user = self.request.user
         queryset = Recipe.objects.select_related('author').prefetch_related(
             'tags', 'ingredients')
@@ -204,7 +208,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         url_name='favorite',
         permission_classes=[permissions.IsAuthenticated])
     def favorite(self, request, pk=None):
-        """Добавляет/удаляет рецепт из избранного."""
+        """Добавление/удаление рецепта из избранного."""
         recipe = get_object_or_404(Recipe, pk=pk)
         user = request.user
 
@@ -218,10 +222,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
                     return Response(serializer.data,
                                     status=status.HTTP_201_CREATED)
                 else:
-                    return Response({"detail": "Рецепт уже в избранном."},
+                    return Response({'detail': 'Рецепт уже в избранном!'},
                                     status=status.HTTP_400_BAD_REQUEST)
             except Exception as e:
-                return Response({"detail": str(e)},
+                return Response({'detail': str(e)},
                                 status=status.HTTP_400_BAD_REQUEST)
         elif request.method == 'DELETE':
             deleted, _ = Favourites.objects.filter(
@@ -229,7 +233,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             if deleted:
                 return Response(status=status.HTTP_204_NO_CONTENT)
             else:
-                return Response({"detail": "Рецепт не найден в избранном."},
+                return Response({'detail': 'Рецепт не найден в избранном!'},
                                 status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
@@ -241,7 +245,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         permission_classes=[permissions.IsAuthenticated]
     )
     def shopping_cart(self, request, pk=None):
-        """Добавляет/удаляет рецепт из корзины покупок."""
+        """Добавление/удаление рецепта из корзины покупок."""
         recipe = get_object_or_404(Recipe, pk=pk)
         user = request.user
 
@@ -254,11 +258,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
                     return Response(serializer.data,
                                     status=status.HTTP_201_CREATED)
                 else:
-                    return Response({"detail": "Рецепт уже в корзине."},
+                    return Response({'detail': 'Рецепт уже в корзине!'},
                                     status=status.HTTP_400_BAD_REQUEST)
 
             except Exception as e:
-                return Response({"detail": str(e)},
+                return Response({'detail': str(e)},
                                 status=status.HTTP_400_BAD_REQUEST)
 
         elif request.method == 'DELETE':
@@ -267,7 +271,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             if deleted:
                 return Response(status=status.HTTP_204_NO_CONTENT)
             else:
-                return Response({"detail": "Рецепт не найден в корзине."},
+                return Response({'detail': 'Рецепт не найден в корзине!'},
                                 status=status.HTTP_400_BAD_REQUEST)
 
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
@@ -280,7 +284,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         permission_classes=[permissions.IsAuthenticated]
     )
     def download_shopping_cart(self, request):
-        """Скачивает список покупок для текущего пользователя."""
+        """Скачивание списока покупок для текущего пользователя."""
         user = request.user
 
         ingredients = ShoppingList.objects.filter(user=user).values(
@@ -306,13 +310,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
         url_path='get-link'
     )
     def get_link(self, request, pk=None):
-        """Генерирует короткую ссылку на рецепт."""
+        """Создание короткой ссылки на рецепт."""
         recipe = self.get_object()
         try:
             short_link_obj = ShortLink.objects.get(recipe=recipe)
             short_id = short_link_obj.short_id
             short_link = f'{settings.BASE_URL}/api/s/{short_id}'
             return Response({'short-link': short_link})
+
         except ShortLink.DoesNotExist:
             short_id = hashids.encode(recipe.pk)
             short_link_obj = ShortLink.objects.create(
@@ -322,9 +327,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
 
 def redirect_to_recipe(request, short_id):
-    """Перенаправляет на страницу рецепта по короткой ссылке."""
+    """Переправление на страницу рецепта по короткой ссылке."""
     try:
         short_link_obj = ShortLink.objects.get(short_id=short_id)
         return redirect(short_link_obj.recipe.get_absolute_url())
     except ShortLink.DoesNotExist:
-        return HttpResponseNotFound("Рецепт не найден.")
+        return HttpResponseNotFound('Рецепт не найден!')
