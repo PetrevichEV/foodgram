@@ -177,8 +177,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def _annotate_shopping_cart(self, queryset, user):
         """Добавляем поле is_in_shopping_cart."""
-        return queryset.annotate(is_in_shopping_cart=Exists(ShoppingList.objects.filter(
-            user=user, recipe=OuterRef('pk'))))
+        return queryset.annotate(is_in_shopping_cart=Exists(
+            ShoppingList.objects.filter(user=user, recipe=OuterRef('pk'))))
 
     def get_queryset(self):
         """Получаем queryset рецептов."""
