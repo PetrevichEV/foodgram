@@ -13,10 +13,22 @@ class TagAdmin(admin.ModelAdmin):
 class IngredientAdmin(admin.ModelAdmin):
     list_display = ('id', 'name')
 
+    search_fields = ('name',)
+
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name')
+    list_display = ('id', 'name', 'author', 'added_favorites')
+
+    search_fields = ('author', 'name')
+    list_filter = ('username',)
+    readonly_fields = ('added_favorites',)
+
+    def added_favorites(self, obj):
+        """Подсчет общего числа добавлений рецепта в избранное."""
+        return Favourites.objects.filter(recipe=obj).count()
+
+    added_favorites.short_description = 'Всего в избранном'
 
 
 @admin.register(Favourites)
