@@ -36,19 +36,15 @@ class RecipeFilter(FilterSet):
         fields = ('tags', 'author')
 
     def filter_is_favorited(self, queryset, name, value):
-        user = self.request.user
-
         if value is True:
-            return queryset.filter(favourites__user=user)
+            return queryset.filter(is_favorited=True)
+        elif value is False:
+            return queryset.filter(is_favorited=False)
         return queryset
 
     def filter_is_in_shopping_cart(self, queryset, name, value):
-        user = self.request.user
         if value is True:
-            return queryset.filter(shoppinglist__user=user)
+            return queryset.filter(is_in_shopping_cart=True)
+        elif value is False:
+            return queryset.filter(is_in_shopping_cart=False)
         return queryset
-
-    @property
-    def request(self):
-        """Доступ к request."""
-        return self.queryset.request
