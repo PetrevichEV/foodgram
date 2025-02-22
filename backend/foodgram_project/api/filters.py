@@ -27,7 +27,7 @@ class RecipeFilter(FilterSet):
     )
 
     is_in_shopping_cart = filters.BooleanFilter(
-        method='filter_is_in_shopping_cart',
+        method='filter_is_in_shopping_list',
         label='В корзине'
     )
 
@@ -41,8 +41,8 @@ class RecipeFilter(FilterSet):
             return queryset.filter(favorites__user=user)
         return queryset
 
-    def filter_is_in_shopping_cart(self, queryset, name, value):
+    def filter_is_in_shopping_list(self, queryset, name, value):
         user = self.request.user
         if value and user.is_authenticated:
-            return queryset.filter(shopping_cart__user=user)
+            return queryset.filter(shopping_list__user=user)
         return queryset
