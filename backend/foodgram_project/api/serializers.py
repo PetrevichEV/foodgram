@@ -285,28 +285,18 @@ class RecipeNewSerializer(serializers.ModelSerializer):
         fields = ('id', 'ingredients', 'tags', 'image',
                   'name', 'text', 'cooking_time', 'author')
 
-    def validate_tags(self, tags):
-        if not tags:
-            raise serializers.ValidationError({'tags': 'Укажите теги!'})
-        if len(tags) != len(set(tags)):
-            raise serializers.ValidationError({'tags': 'Теги не уникальны!'})
-        return tags
+    def validate(self, data):
+        if not data.get('tags'):
+            raise serializers.ValidationError("Укажите теги.")
+        if len(set(data['tags'])) != len(data['tags']):
+            raise serializers.ValidationError("Теги не уникальны.")
 
-    def validate_ingredients(self, ingredients):
-        if not ingredients:
-            raise serializers.ValidationError(
-                {'ingredients': 'Укажите ингредиенты!'}
-            )
-        if len(ingredients) != len(set(ing['id'] for ing in ingredients)):
-            raise serializers.ValidationError(
-                {'ingredients': 'Ингредиенты не уникальны!'}
-            )
-        return ingredients
-
-    def validate_image(self, img):
-        if not img:
-            raise serializers.ValidationError('Нужно изображение!')
-        return img
+        if not data.get('ingredients'):
+            raise serializers.ValidationError("Укажите ингредиенты.")
+        ingredient_ids = [i['ingredient'].id for i in data['ingredients']]
+        if len(set(ingredient_ids)) != len(ingredient_ids):
+            raise serializers.ValidationError("Ингредиенты не уникальны.")
+        return data
 
     @staticmethod
     def add_ingredients(recipe, ingredients):

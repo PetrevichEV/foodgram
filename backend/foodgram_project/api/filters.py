@@ -26,14 +26,14 @@ class RecipeFilter(FilterSet):
         label='Избранное'
     )
 
-    is_in_shopping_cart = filters.BooleanFilter(
+    is_in_shopping_list = filters.BooleanFilter(
         method='filter_is_in_shopping_list',
         label='В корзине'
     )
 
     class Meta:
         model = Recipe
-        fields = ('tags', 'author')
+        fields = ('author', 'tags', 'is_favorited', 'is_in_shopping_list')
 
     def filter_is_favorited(self, queryset, name, value):
         user = self.request.user
