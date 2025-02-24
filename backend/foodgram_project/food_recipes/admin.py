@@ -5,7 +5,7 @@ from .models import (
     Ingredient,
     IngredientForRecipe,
     Recipe,
-    ShoppingCart,
+    ShoppingList,
     ShortLink,
     Tag,
 )
@@ -45,7 +45,7 @@ class FavouritesAdmin(admin.ModelAdmin):
     list_display = ('id',)
 
 
-@admin.register(ShoppingCart)
+@admin.register(ShoppingList)
 class ShoppingListAdmin(admin.ModelAdmin):
     list_display = ('id',)
 
