@@ -165,15 +165,42 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     """Вьюсет рецептов."""
 
-    queryset = Recipe.objects.prefetch_related(
-        'recipe_ingredients__ingredient', 'tags'
-    )
     serializer_class = RecipeCreateUpdateSerializer
     permission_classes = (IsOwnerOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
     pagination_class = PagePaginator
     http_method_names = ('get', 'post', 'patch', 'delete')
+
+    def get_serializer_class(self):
+        """Определение сериализатора для текущего действия."""
+        if self.action == 'list' or self.action == 'retrieve':
+            return RecipeSerializer
+        return RecipeCreateUpdateSerializer
+
+    def _annotate_favorite(self, queryset, user):
+        """Добавление поля is_favorited."""
+        return queryset.annotate(is_favorited=Exists(Favourites.objects.filter(
+            user=user, recipe=OuterRef('pk'))))
+
+    def _annotate_shopping_cart(self, queryset, user):
+        """Добавление поля is_in_shopping_cart."""
+        return queryset.annotate(is_in_shopping_cart=Exists(
+            ShoppingCart.objects.filter(user=user, recipe=OuterRef('pk'))))
+
+    def get_queryset(self):
+        """Получение queryset рецептов."""
+        current_user = self.request.user
+        queryset = Recipe.objects.select_related('author').prefetch_related(
+            'tags', 'ingredients')
+        if current_user.is_authenticated:
+            queryset = self._annotate_favorite(
+                queryset, current_user
+            )
+            queryset = self._annotate_shopping_cart(
+                queryset, current_user
+            )
+        return queryset
 
     @action(
         detail=True,
@@ -240,7 +267,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                                 status=status.HTTP_400_BAD_REQUEST)
 
         elif request.method == 'DELETE':
-            deleted, _ = ShoppingList.objects.filter(
+            deleted, _ = ShoppingCart.objects.filter(
                 user=user, recipe=recipe).delete()
             if deleted:
                 return Response(status=status.HTTP_204_NO_CONTENT)
@@ -261,7 +288,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """Скачивание списока покупок для текущего пользователя."""
         user = request.user
 
-        ingredients = ShoppingList.objects.filter(user=user).values(
+        ingredients = ShoppingCart.objects.filter(user=user).values(
             'recipe__ingredients__name',
             'recipe__ingredients__measurement_unit'
         ).annotate(total_amount=Sum('recipe__recipe_ingredients__amount'))
