@@ -12,7 +12,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', default='SECRET_KEY')
 
 DEBUG = False
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost'] if DEBUG else [
+ALLOWED_HOSTS = ['127.0.0.1'] if DEBUG else [
     'localhost', '89.169.163.125', 'foodgrampetrevich.hopto.org'
 ]
 
