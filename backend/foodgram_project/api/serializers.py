@@ -66,7 +66,7 @@ class AvatarSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         if 'avatar' not in data:
-            raise serializers.ValidationError('Обязательгое поле!')
+            raise serializers.ValidationError('Обязательное поле!')
         return data
 
 
@@ -143,8 +143,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         """Возвращаем информацию о пользователе,
         на которого была создана подписка."""
         return UserSubscriptionSerializer(
-            instance.author,
-            context=self.context
+            instance.author, context=self.context
         ).data
 
 
@@ -185,8 +184,9 @@ class UserSubscriptionSerializer(UserSerializer):
         except (ValueError, TypeError):
             pass
 
-        return SimpleRecipeSerializer(queryset, many=True,
-                                      context=self.context).data
+        return SimpleRecipeSerializer(
+            queryset, many=True, context=self.context
+        ).data
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -208,7 +208,7 @@ class IngredientForRecipeSerializer(serializers.ModelSerializer):
     """Сериализатор для ингредиента в рецепте."""
 
     id = serializers.PrimaryKeyRelatedField(
-        queryset=Ingredient.objects.all(), source='ingredient.pk'
+        queryset=Ingredient.objects.all(), source='ingredient.id'
     )
     name = serializers.CharField(source='ingredient.name', read_only=True)
     measurement_unit = serializers.CharField(
@@ -218,18 +218,6 @@ class IngredientForRecipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = IngredientForRecipe
         fields = ('id', 'name', 'measurement_unit', 'amount')
-
-
-class IngredientForRecipeCreateSerializer(serializers.ModelSerializer):
-    """Сериализатор для добавления ингредиентов в рецепт."""
-
-    id = serializers.PrimaryKeyRelatedField(
-        queryset=Ingredient.objects.all()
-    )
-
-    class Meta:
-        model = IngredientForRecipe
-        fields = ('id', 'amount')
 
 
 class RecipeSerializer(serializers.ModelSerializer):
@@ -261,6 +249,18 @@ class RecipeSerializer(serializers.ModelSerializer):
         if user.is_authenticated:
             return ShoppingCart.objects.filter(user=user, recipe=obj).exists()
         return False
+
+
+class IngredientForRecipeCreateSerializer(serializers.ModelSerializer):
+    """Сериализатор для добавления ингредиентов в рецепт."""
+
+    id = serializers.PrimaryKeyRelatedField(
+        queryset=Ingredient.objects.all()
+    )
+
+    class Meta:
+        model = IngredientForRecipe
+        fields = ('id', 'amount')
 
 
 class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
@@ -304,7 +304,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         recipe_ingredients = [
             IngredientForRecipe(
                 recipe=recipe,
-                ingredient=ingredient['id'],
+                ingredient=ingredients['id'],
                 amount=ingredient['amount'],
             )
             for ingredient in ingredients
@@ -325,16 +325,16 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         """Обновляет рецепт."""
-        ingredients = validated_data.pop('ingredients', None)
-        if ingredients:
-            instance.recipe_ingredients.all().delete()
-            self.add_ingredients(instance, ingredients)
-
         if 'tags' in validated_data:
-            tags = validated_data.get('tags')
+            tags = validated_data.pop('tags')
             instance.tags.set(tags)
-
-        return super().update(instance, validated_data)
+        if 'ingredients' in validated_data:
+            ingredients_data = validated_data.pop('ingredients')
+            self.add_ingredients(instance, ingredients_data)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
 
     def to_representation(self, instance):
         """Преобразовывает объект рецепта в представление."""
