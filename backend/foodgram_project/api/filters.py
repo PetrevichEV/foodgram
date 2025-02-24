@@ -26,23 +26,26 @@ class RecipeFilter(FilterSet):
         label='Избранное'
     )
 
-    is_in_shopping_list = filters.BooleanFilter(
-        method='filter_is_in_shopping_я',
+    is_in_shopping_cart = filters.BooleanFilter(
+        method='filter_is_in_shopping_cart',
         label='В корзине'
     )
 
     class Meta:
         model = Recipe
-        fields = ('author', 'tags', 'is_favorited', 'is_in_shopping_list')
+        fields = ('tags', 'author')
 
     def filter_is_favorited(self, queryset, name, value):
-        user = self.request.user
-        if value and user.is_authenticated:
-            return queryset.filter(favorites__user=user)
+        if value is True:
+            return queryset.filter(is_favorited=True)
+        elif value is False:
+            return queryset.filter(is_favorited=False)
         return queryset
 
-    def filter_is_in_shopping_list(self, queryset, name, value):
-        user = self.request.user
-        if value and user.is_authenticated:
-            return queryset.filter(shopping_list__user=user)
+    def filter_is_in_shopping_cart(self, queryset, name, value):
+        if value is True:
+            return queryset.filter(is_in_shopping_cart=True)
+        elif value is False:
+            return queryset.filter(is_in_shopping_cart=False)
         return queryset
+    
