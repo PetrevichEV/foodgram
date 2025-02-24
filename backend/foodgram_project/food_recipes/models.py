@@ -76,6 +76,7 @@ class Recipe(models.Model):
     )
     ingredients = models.ManyToManyField(
         Ingredient,
+        related_name='recipes',
         through='IngredientForRecipe',
         verbose_name='Ингредиенты'
     )
@@ -104,11 +105,13 @@ class IngredientForRecipe(models.Model):
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
+        related_name='ingredients_for',
         verbose_name='Ингредиент'
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
+        related_name='recipe_ingredients',
         verbose_name='Рецепт'
     )
     amount = models.PositiveSmallIntegerField(
@@ -116,7 +119,6 @@ class IngredientForRecipe(models.Model):
     )
 
     class Meta:
-        default_related_name = 'recipe_ingredients'
         verbose_name = 'Ингредиенты рецепта'
         verbose_name_plural = 'Ингредиенты рецептов'
 
@@ -143,7 +145,7 @@ class Favourites(models.Model):
         return f'{self.user},{self.recipe}'
 
 
-class ShoppingList(models.Model):
+class ShoppingCart(models.Model):
     """Модель списка покупок."""
     user = models.ForeignKey(
         User,
@@ -152,7 +154,7 @@ class ShoppingList(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='shopping_list'
+        related_name='shopping_cart'
     )
 
     class Meta:

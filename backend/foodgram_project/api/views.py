@@ -15,7 +15,7 @@ from food_recipes.models import (
     Favourites,
     Ingredient,
     Recipe,
-    ShoppingList,
+    ShoppingCart,
     ShortLink,
     Tag,
 )
@@ -28,9 +28,9 @@ from .serializers import (
     AvatarSerializer,
     FavoriteSerializer,
     IngredientSerializer,
-    RecipeNewSerializer,
+    RecipeCreateUpdateSerializer,
     RecipeSerializer,
-    ShoppingListSerializer,
+    ShoppingCartSerializer,
     SubscriptionSerializer,
     TagSerializer,
     UserSerializer,
@@ -165,41 +165,15 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     """Вьюсет рецептов."""
 
+    queryset = Recipe.objects.prefetch_related(
+        'recipe_ingredients__ingredient', 'tags'
+    )
+    serializer_class = RecipeCreateUpdateSerializer
     permission_classes = (IsOwnerOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
     pagination_class = PagePaginator
     http_method_names = ('get', 'post', 'patch', 'delete')
-
-    def _annotate_favorite(self, queryset, user):
-        """Добавление поля is_favorited."""
-        return queryset.annotate(is_favorited=Exists(Favourites.objects.filter(
-            user=user, recipe=OuterRef('pk'))))
-
-    def _annotate_shopping_cart(self, queryset, user):
-        """Добавление поля is_in_shopping_cart."""
-        return queryset.annotate(is_in_shopping_cart=Exists(
-            ShoppingList.objects.filter(user=user, recipe=OuterRef('pk'))))
-
-    def get_queryset(self):
-        """Получение queryset рецептов."""
-        current_user = self.request.user
-        queryset = Recipe.objects.select_related('author').prefetch_related(
-            'tags', 'ingredients')
-        if current_user.is_authenticated:
-            queryset = self._annotate_favorite(
-                queryset, current_user
-            )
-            queryset = self._annotate_shopping_cart(
-                queryset, current_user
-            )
-        return queryset
-
-    def get_serializer_class(self):
-        """Определение сериализатора для текущего действия."""
-        if self.action == 'list' or self.action == 'retrieve':
-            return RecipeSerializer
-        return RecipeNewSerializer
 
     @action(
         detail=True,
@@ -251,10 +225,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         if request.method == 'POST':
             try:
-                shopping_list, created = ShoppingList.objects.get_or_create(
+                shopping_list, created = ShoppingCart.objects.get_or_create(
                     user=user, recipe=recipe)
                 if created:
-                    serializer = ShoppingListSerializer(shopping_list)
+                    serializer = ShoppingCartSerializer(shopping_list)
                     return Response(serializer.data,
                                     status=status.HTTP_201_CREATED)
                 else:
