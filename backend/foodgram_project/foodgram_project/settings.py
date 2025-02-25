@@ -16,6 +16,8 @@ ALLOWED_HOSTS = ['127.0.0.1'] if DEBUG else [
     'localhost', '89.169.163.125', 'foodgrampetrevich.hopto.org'
 ]
 
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 BASE_URL = 'https://foodgrampetrevich.hopto.org'
 
 CSRF_COOKIE_SECURE = True
