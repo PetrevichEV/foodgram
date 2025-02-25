@@ -16,7 +16,7 @@ ALLOWED_HOSTS = ['127.0.0.1'] if DEBUG else [
     'localhost', '89.169.163.125', 'foodgrampetrevich.hopto.org'
 ]
 
-BASE_URL = 'http://foodgrampetrevich.hopto.org'
+BASE_URL = 'https://foodgrampetrevich.hopto.org'
 
 CSRF_COOKIE_SECURE = True
 
