@@ -29,7 +29,6 @@ from .serializers import (
     FavoriteSerializer,
     IngredientSerializer,
     RecipeСreateUpdateSerializer,
-    RecipeSerializer,
     ShoppingListSerializer,
     SubscriptionSerializer,
     TagSerializer,
