@@ -28,7 +28,7 @@ from .serializers import (
     AvatarSerializer,
     FavoriteSerializer,
     IngredientSerializer,
-    RecipeNewSerializer,
+    RecipeСreateUpdateSerializer,
     RecipeSerializer,
     ShoppingListSerializer,
     SubscriptionSerializer,
@@ -199,7 +199,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """Определение сериализатора для текущего действия."""
         if self.action == 'list' or self.action == 'retrieve':
             return RecipeSerializer
-        return RecipeNewSerializer
+        return RecipeСreateUpdateSerializer
 
     @action(
         detail=True,
