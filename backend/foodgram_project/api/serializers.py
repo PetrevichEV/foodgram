@@ -45,15 +45,6 @@ class UserCreateSerializer(UserCreateSerializer):
                   'first_name', 'last_name', 'password')
         read_only_fields = ('id',)
 
-    def create(self, validated_data):
-        """Создание пользователя с учетом аватара."""
-        avatar = validated_data.pop('avatar', None)
-        user = User.objects.create_user(**validated_data)
-        if avatar:
-            user.avatar = avatar
-            user.save()
-        return user
-
 
 class AvatarSerializer(serializers.ModelSerializer):
     """Сериализатор для отображения аватара."""
