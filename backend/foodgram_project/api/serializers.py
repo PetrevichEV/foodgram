@@ -97,7 +97,7 @@ class AvatarSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         if 'avatar' not in data:
-            raise serializers.ValidationError('Обязательгое поле!')
+            raise serializers.ValidationError('Обязательное поле!')
         return data
 
 
@@ -174,7 +174,7 @@ class IngredientForRecipeCreateSerializer(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(
         queryset=Ingredient.objects.all(), source='ingredient'
     )
-    amount = serializers.IntegerField()
+    amount = serializers.IntegerField(min_value=1)
 
     class Meta:
         model = IngredientForRecipe
@@ -243,8 +243,9 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     author = UserSerializer(read_only=True)
     tags = TagSerializer(many=True, read_only=True)
-    ingredients = IngredientForRecipeSerializer(many=True, read_only=True,
-                                                source='recipe_ingredients')
+    ingredients = IngredientForRecipeSerializer(
+        many=True, read_only=True, source='recipe_ingredients'
+    )
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
     image = Base64ImageField()
@@ -286,19 +287,21 @@ class RecipeNewSerializer(serializers.ModelSerializer):
                   'name', 'text', 'cooking_time', 'author')
 
     def validate(self, data):
+        """Проверяет уникальность тегов и ингредиентов."""
         if not data.get('tags'):
-            raise serializers.ValidationError("Укажите теги.")
+            raise serializers.ValidationError('Укажите теги!')
         if len(set(data['tags'])) != len(data['tags']):
-            raise serializers.ValidationError("Теги не уникальны.")
+            raise serializers.ValidationError('Теги не уникальны!')
 
         if not data.get('ingredients'):
-            raise serializers.ValidationError("Укажите ингредиенты.")
+            raise serializers.ValidationError('Укажите ингредиенты!')
         ingredient_ids = [i['ingredient'].id for i in data['ingredients']]
         if len(set(ingredient_ids)) != len(ingredient_ids):
-            raise serializers.ValidationError("Ингредиенты не уникальны.")
+            raise serializers.ValidationError('Ингредиенты не уникальны!')
         return data
 
     def validate_image(self, img):
+        """Проверяет наличие картинки рецепта."""
         if not img:
             raise serializers.ValidationError('Нужно изображение!')
         return img
@@ -342,7 +345,4 @@ class RecipeNewSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         """Преобразовывает объект рецепта в представление."""
-        return RecipeSerializer(
-            instance,
-            context=self.context
-        ).data
+        return RecipeSerializer(instance, context=self.context).data
