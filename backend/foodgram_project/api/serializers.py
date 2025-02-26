@@ -62,8 +62,7 @@ class AvatarSerializer(serializers.ModelSerializer):
 
 
 class SimpleRecipeSerializer(serializers.ModelSerializer):
-    """Сериализатор для краткого отображения информации
-       о рецептах в подписках, избранном, корзине."""
+    """Короткое отображение информации о рецептах."""
 
     class Meta:
         model = Recipe
@@ -194,13 +193,11 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 
 class IngredientForRecipeCreateSerializer(serializers.ModelSerializer):
-    """Сериализатор для добавления ингредиентов
-       при создании, обновлении рецепта."""
+    """Добавление ингредиентов при создании, обновлении рецепта."""
 
     id = serializers.PrimaryKeyRelatedField(
         queryset=Ingredient.objects.all(), source='ingredient'
     )
-    amount = serializers.IntegerField(min_value=1)
 
     class Meta:
         model = IngredientForRecipe
@@ -238,11 +235,11 @@ class RecipeСreateUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Ингредиенты не уникальны!')
         return data
 
-    def validate_image(self, img):
+    def validate_image(self, image):
         """Проверяет наличие картинки рецепта."""
-        if not img:
+        if not image:
             raise serializers.ValidationError('Нужно изображение!')
-        return img
+        return image
 
     @staticmethod
     def add_ingredients(recipe, ingredients):
@@ -286,46 +283,44 @@ class RecipeСreateUpdateSerializer(serializers.ModelSerializer):
         return RecipeSerializer(instance, context=self.context).data
 
 
-class FavoriteSerializer(serializers.ModelSerializer):
-    """Сериализатор для добавления рецептов в избранное."""
+class FavoriteShoppingMixin:
+    """Проверка на тождественность."""
+    model = None
+    error_message = None
 
     def validate(self, data):
         user = data['user']
         recipe = data['recipe']
-        if Favourites.objects.filter(user=user, recipe=recipe).exists():
+        if self.model.objects.filter(user=user, recipe=recipe).exists():
             raise serializers.ValidationError(
-                'Рецепт уже в избранном!'
+                self.error_message
             )
         return data
 
     def to_representation(self, instance):
-        """Возвращаем краткую информацию о рецептах в избранном."""
+        """Возвращаем краткую информацию о рецептах."""
         recipe = instance.recipe
         serializer = SimpleRecipeSerializer(recipe, context=self.context)
         return serializer.data
+
+
+class FavoriteSerializer(FavoriteShoppingMixin, serializers.ModelSerializer):
+    """Добавление рецептов в избранное."""
+
+    model = Favourites
+    error_message = 'Рецепт уже в избранном!'
 
     class Meta:
         model = Favourites
         fields = ('user', 'recipe')
 
 
-class ShoppingListSerializer(serializers.ModelSerializer):
-    """Сериализатор для добавления рецептов в корзину покупок."""
+class ShoppingListSerializer(FavoriteShoppingMixin,
+                             serializers.ModelSerializer):
+    """Добавление рецептов в корзину покупок."""
 
-    def validate(self, data):
-        user = data['user']
-        recipe = data['recipe']
-        if ShoppingList.objects.filter(user=user, recipe=recipe).exists():
-            raise serializers.ValidationError(
-                'Рецепт уже добавлен в корзину покупок!'
-            )
-        return data
-
-    def to_representation(self, instance):
-        """Возвращаем краткую информацию о рецептах в корзине."""
-        recipe = instance.recipe
-        serializer = SimpleRecipeSerializer(recipe, context=self.context)
-        return serializer.data
+    model = ShoppingList
+    error_message = 'Рецепт уже добавлен в корзину покупок!'
 
     class Meta:
         model = ShoppingList
