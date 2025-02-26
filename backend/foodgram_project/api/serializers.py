@@ -235,11 +235,11 @@ class RecipeСreateUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Ингредиенты не уникальны!')
         return data
 
-    def validate_image(self, image):
+    def validate_image(self, img):
         """Проверяет наличие картинки рецепта."""
-        if not image:
+        if not img:
             raise serializers.ValidationError('Нужно изображение!')
-        return image
+        return img
 
     @staticmethod
     def add_ingredients(recipe, ingredients):
@@ -283,18 +283,14 @@ class RecipeСreateUpdateSerializer(serializers.ModelSerializer):
         return RecipeSerializer(instance, context=self.context).data
 
 
-class FavoriteShoppingMixin:
-    """Проверка на тождественность."""
-    model = None
-    error_message = None
+class UserRecipeRelationMixin:
+    """Валидация связи User-Recipe и сериализация в кратком виде."""
 
     def validate(self, data):
         user = data['user']
         recipe = data['recipe']
-        if self.model.objects.filter(user=user, recipe=recipe).exists():
-            raise serializers.ValidationError(
-                self.error_message
-            )
+        if self.Meta.model.objects.filter(user=user, recipe=recipe).exists():
+            raise serializers.ValidationError('Рецепт уже добавлен!')
         return data
 
     def to_representation(self, instance):
@@ -303,25 +299,21 @@ class FavoriteShoppingMixin:
         serializer = SimpleRecipeSerializer(recipe, context=self.context)
         return serializer.data
 
-
-class FavoriteSerializer(FavoriteShoppingMixin, serializers.ModelSerializer):
-    """Добавление рецептов в избранное."""
-
-    model = Favourites
-    error_message = 'Рецепт уже в избранном!'
-
     class Meta:
+        fields = ('user', 'recipe')
+
+
+class FavoriteSerializer(UserRecipeRelationMixin,
+                         serializers.ModelSerializer,):
+    """Сериализатор для добавления рецептов в избранное."""
+
+    class Meta(UserRecipeRelationMixin.Meta):
         model = Favourites
-        fields = ('user', 'recipe')
 
 
-class ShoppingListSerializer(FavoriteShoppingMixin,
+class ShoppingListSerializer(UserRecipeRelationMixin,
                              serializers.ModelSerializer):
-    """Добавление рецептов в корзину покупок."""
+    """Сериализатор для добавления рецептов в корзину покупок."""
 
-    model = ShoppingList
-    error_message = 'Рецепт уже добавлен в корзину покупок!'
-
-    class Meta:
+    class Meta(UserRecipeRelationMixin.Meta):
         model = ShoppingList
-        fields = ('user', 'recipe')

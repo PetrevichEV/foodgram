@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.db.models import Exists, OuterRef, Sum
+from django.db.models import Sum
 from django.http import HttpResponse, HttpResponseNotFound
 from django.shortcuts import get_object_or_404, redirect
 from django_filters.rest_framework import DjangoFilterBackend
@@ -8,7 +8,7 @@ from djoser.views import UserViewSet as DjoserUserViewSet
 from hashids import Hashids
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
+
 from rest_framework.response import Response
 
 from food_recipes.models import (
@@ -169,11 +169,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filterset_class = RecipeFilter
     pagination_class = PagePaginator
     http_method_names = ('get', 'post', 'patch', 'delete')
-
-    def _annotate_favorite(self, queryset, user):
-        """Добавление поля is_favorited."""
-        return queryset.annotate(is_favorited=Exists(Favourites.objects.filter(
-            user=user, recipe=OuterRef('pk'))))
 
     @action(
         detail=True,
