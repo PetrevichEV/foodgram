@@ -1,14 +1,8 @@
+
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
-
-from foodgram_project.settings import (
-    MEASUREMENT_UNIT_MAX_LENGTH,
-    MIN_AMOUNT,
-    NAME_INGREDIENT_MAX_LENGTH,
-    NAME_RECIPE_MAX_LENGTH,
-    SHORT_ID_MAX_LENGTH,
-)
 
 from .validators import validate_slug
 
@@ -39,11 +33,11 @@ class Tag(models.Model):
 class Ingredient(models.Model):
     """Модель ингридиентов."""
     name = models.CharField(
-        max_length=NAME_INGREDIENT_MAX_LENGTH,
+        max_length=settings.NAME_INGREDIENT_MAX_LENGTH,
         verbose_name='Название'
     )
     measurement_unit = models.CharField(
-        max_length=MEASUREMENT_UNIT_MAX_LENGTH,
+        max_length=settings.MEASUREMENT_UNIT_MAX_LENGTH,
         verbose_name='Единица измерения'
     )
 
@@ -64,14 +58,14 @@ class Recipe(models.Model):
         verbose_name='Автор'
     )
     name = models.CharField(
-        max_length=NAME_RECIPE_MAX_LENGTH,
+        max_length=settings.NAME_RECIPE_MAX_LENGTH,
         verbose_name='Название'
     )
     text = models.TextField(
         verbose_name='Описание рецепта'
     )
     cooking_time = models.PositiveIntegerField(
-        validators=[MinValueValidator(MIN_AMOUNT)],
+        validators=[MinValueValidator(settings.MIN_AMOUNT)],
         verbose_name='Время приготовления'
     )
     ingredients = models.ManyToManyField(
@@ -114,7 +108,7 @@ class IngredientForRecipe(models.Model):
         verbose_name='Рецепт'
     )
     amount = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(MIN_AMOUNT)],
+        validators=[MinValueValidator(settings.MIN_AMOUNT)],
     )
 
     class Meta:
@@ -166,7 +160,7 @@ class ShoppingList(models.Model):
 class ShortLink(models.Model):
     """Модель короткой ссылки."""
     short_id = models.CharField(
-        max_length=SHORT_ID_MAX_LENGTH,
+        max_length=settings.SHORT_ID_MAX_LENGTH,
         unique=True,
         db_index=True
     )

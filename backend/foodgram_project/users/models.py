@@ -1,8 +1,7 @@
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
-
-from foodgram_project.settings import EMAIL_MAX_LENGTH, FIELD_MAX_LENGTH
 
 
 class User(AbstractUser):
@@ -15,21 +14,21 @@ class User(AbstractUser):
     email = models.EmailField(
         verbose_name='Электронная почта',
         unique=True,
-        max_length=EMAIL_MAX_LENGTH
+        max_length=settings.EMAIL_MAX_LENGTH
     )
     username = models.CharField(
         verbose_name='Имя пользователя',
         unique=True,
         validators=[UnicodeUsernameValidator()],
-        max_length=FIELD_MAX_LENGTH,
+        max_length=settings.FIELD_MAX_LENGTH,
     )
     first_name = models.CharField(
         verbose_name='Имя',
-        max_length=FIELD_MAX_LENGTH
+        max_length=settings.FIELD_MAX_LENGTH
     )
     last_name = models.CharField(
         verbose_name='Фамилия',
-        max_length=FIELD_MAX_LENGTH
+        max_length=settings.FIELD_MAX_LENGTH
     )
     avatar = models.ImageField(
         verbose_name='Аватар',

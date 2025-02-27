@@ -74,7 +74,7 @@ class UserSubscriptionSerializer(UserSerializer):
     """Сериализатор для отображение подписанного пользователя."""
 
     recipes = serializers.SerializerMethodField()
-    recipes_count = serializers.SerializerMethodField()
+    recipes_count = serializers.IntegerField(default=0)
 
     class Meta(UserSerializer.Meta):
         fields = UserSerializer.Meta.fields + ('recipes_count', 'recipes')

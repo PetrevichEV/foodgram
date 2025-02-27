@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.db.models import Sum
+from django.db.models import Count, Sum
 from django.http import HttpResponse, HttpResponseNotFound
 from django.shortcuts import get_object_or_404, redirect
 from django_filters.rest_framework import DjangoFilterBackend
@@ -94,7 +94,9 @@ class UserViewSet(DjoserUserViewSet):
     )
     def subscriptions(self, request):
         """Получение списка подписок текущего пользователя."""
-        queryset = User.objects.filter(subscribers__user=request.user)
+        queryset = User.objects.filter(
+            subscribers__user=request.user
+        ).annotate(recipes_count=Count('recipes')).order_by('username')
         page = self.paginate_queryset(queryset)
         serializer = UserSubscriptionSerializer(
             page, many=True, context={'request': request})
