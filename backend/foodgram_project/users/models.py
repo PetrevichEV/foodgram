@@ -5,7 +5,7 @@ from django.db import models
 
 
 class User(AbstractUser):
-    """Модель пользователя."""
+    """Настройка расширенной модели пользователя."""
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ('username', 'first_name',
@@ -39,7 +39,7 @@ class User(AbstractUser):
     )
 
     class Meta:
-        ordering = 'username',
+        ordering = ('username', 'date_joined')
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
 
@@ -49,6 +49,7 @@ class User(AbstractUser):
 
 class Subscription(models.Model):
     """Модель подписок."""
+
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
