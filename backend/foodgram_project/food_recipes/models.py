@@ -3,11 +3,13 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
+from hashids import Hashids
 
 from .validators import validate_slug
 
 User = get_user_model()
 
+hashids = Hashids(salt=settings.HASHIDS_SALT, min_length=3)
 
 class Tag(models.Model):
     """Модель тегов."""
@@ -84,6 +86,17 @@ class Recipe(models.Model):
 
     def get_absolute_url(self):
         return f"/recipes/{self.pk}"
+
+    def save(self, *args, **kwargs):
+        """Переопределение метода save для создания короткой ссылки."""
+        is_new = not self.pk  # Проверяем, является ли объект новым
+        super().save(*args, **kwargs)  # Сначала сохраняем объект
+
+        if is_new:  # Если это новый объект
+            from .models import ShortLink  # Импортируем локально, чтобы избежать циклического импорта
+
+            short_id = hashids.encode(self.pk)  # Генерируем короткий ID
+            ShortLink.objects.create(short_id=short_id, recipe=self)  
 
     class Meta:
         verbose_name = 'Рецепт'
