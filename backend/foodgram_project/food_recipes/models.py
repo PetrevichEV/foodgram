@@ -11,6 +11,7 @@ User = get_user_model()
 
 hashids = Hashids(salt=settings.HASHIDS_SALT, min_length=3)
 
+
 class Tag(models.Model):
     """Модель тегов."""
     name = models.CharField(
@@ -89,14 +90,12 @@ class Recipe(models.Model):
 
     def save(self, *args, **kwargs):
         """Переопределение метода save для создания короткой ссылки."""
-        is_new = not self.pk  # Проверяем, является ли объект новым
-        super().save(*args, **kwargs)  # Сначала сохраняем объект
-
-        if is_new:  # Если это новый объект
-            from .models import ShortLink  # Импортируем локально, чтобы избежать циклического импорта
-
-            short_id = hashids.encode(self.pk)  # Генерируем короткий ID
-            ShortLink.objects.create(short_id=short_id, recipe=self)  
+        is_new = not self.pk
+        super().save(*args, **kwargs)
+        if is_new:
+            from .models import ShortLink
+            short_id = hashids.encode(self.pk)
+            ShortLink.objects.create(short_id=short_id, recipe=self)
 
     class Meta:
         verbose_name = 'Рецепт'
