@@ -240,7 +240,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
-    def create_shopping_list_content(self, user):
+    def _create_shopping_list_content(self, user):
         """Создает списк покупок."""
         buffer = io.BytesIO()
         ingredients = ShoppingList.objects.filter(user=user).values(
@@ -289,21 +289,15 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipe = self.get_object()
         try:
             short_link_obj = ShortLink.objects.get(recipe=recipe)
-            short_id = short_link_obj.short_id
-            short_link = f'{settings.BASE_URL}/api/s/{short_id}'
-            return Response({'short-link': short_link})
-
         except ShortLink.DoesNotExist:
-            return Response(
-                {'detail': 'Ссылка не найдена!'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+            recipe.save()
+            short_link_obj = ShortLink.objects.get(recipe=recipe)
+        short_id = short_link_obj.short_id
+        short_link = f'{settings.BASE_URL}/api/s/{short_id}'
+        return Response({'short-link': short_link})
 
 
 def redirect_to_recipe(request, short_id):
     """Переправление на страницу рецепта по короткой ссылке."""
-    try:
-        short_link_obj = ShortLink.objects.get(short_id=short_id)
-        return redirect(short_link_obj.recipe.get_absolute_url())
-    except ShortLink.DoesNotExist:
-        return HttpResponseNotFound('Рецепт не найден!')
+    short_link_obj = get_object_or_404(ShortLink, short_id=short_id)
+    return redirect(short_link_obj.recipe.get_absolute_url())
