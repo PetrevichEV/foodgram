@@ -1,7 +1,7 @@
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from hashids import Hashids
 
@@ -15,12 +15,12 @@ hashids = Hashids(salt=settings.HASHIDS_SALT, min_length=3)
 class Tag(models.Model):
     """Модель тегов."""
     name = models.CharField(
-        max_length=32,
+        max_length=settings.TAG_MAX_LENGTH,
         verbose_name='Название',
     )
     slug = models.SlugField(
         unique=True,
-        max_length=32,
+        max_length=settings.TAG_MAX_LENGTH,
         verbose_name='Слаг',
         validators=(validate_slug,)
     )
@@ -47,6 +47,7 @@ class Ingredient(models.Model):
     class Meta:
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
+        ordering = ('name',)
 
     def __str__(self):
         return self.name
@@ -67,17 +68,20 @@ class Recipe(models.Model):
     text = models.TextField(
         verbose_name='Описание рецепта'
     )
-    cooking_time = models.PositiveIntegerField(
-        validators=[MinValueValidator(settings.MIN_AMOUNT)],
+    cooking_time = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(settings.MIN_AMOUNT),
+                    MaxValueValidator(settings.MAX_AMOUNT)],
         verbose_name='Время приготовления'
     )
     ingredients = models.ManyToManyField(
         Ingredient,
+        related_name='recipes',
         through='IngredientForRecipe',
         verbose_name='Ингредиенты'
     )
     tags = models.ManyToManyField(
         Tag,
+        related_name='recipes',
         verbose_name='Теги'
     )
     image = models.ImageField(
@@ -85,8 +89,15 @@ class Recipe(models.Model):
         verbose_name='Изображение'
     )
 
+    class Meta:
+        verbose_name = 'Рецепт'
+        verbose_name_plural = 'Рецепты'
+
+    def __str__(self):
+        return self.name
+
     def get_absolute_url(self):
-        return f"/recipes/{self.pk}"
+        return f'/recipes/{self.pk}'
 
     def save(self, *args, **kwargs):
         """Переопределение метода save для создания короткой ссылки."""
@@ -96,13 +107,6 @@ class Recipe(models.Model):
             from .models import ShortLink
             short_id = hashids.encode(self.pk)
             ShortLink.objects.create(short_id=short_id, recipe=self)
-
-    class Meta:
-        verbose_name = 'Рецепт'
-        verbose_name_plural = 'Рецепты'
-
-    def __str__(self):
-        return self.name
 
 
 class IngredientForRecipe(models.Model):
@@ -126,6 +130,7 @@ class IngredientForRecipe(models.Model):
     class Meta:
         verbose_name = 'Ингредиенты рецепта'
         verbose_name_plural = 'Ингредиенты рецептов'
+        ordering = ('ingredient',)
 
     def __str__(self) -> str:
         return f'{self.recipe},{self.ingredient}'
@@ -145,6 +150,7 @@ class Favourites(models.Model):
 
     class Meta:
         verbose_name = 'Избранное'
+        ordering = ('user',)
 
     def __str__(self):
         return f'{self.user},{self.recipe}'
@@ -164,6 +170,7 @@ class ShoppingList(models.Model):
 
     class Meta:
         verbose_name = 'Список покупок'
+        ordering = ('user',)
 
     def __str__(self):
         return f'{self.user},{self.recipe}'

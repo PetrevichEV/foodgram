@@ -10,7 +10,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY', default='SECRET_KEY')
 
 
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['127.0.0.1'] if DEBUG else [
     'localhost', '89.169.163.125', 'foodgrampetrevich.hopto.org'
@@ -161,6 +161,10 @@ DJOSER = {
 HASHIDS_SALT = 'salt'
 
 MIN_AMOUNT = 1
+
+MAX_AMOUNT = 1440
+
+TAG_MAX_LENGTH = 32
 
 EMAIL_MAX_LENGTH = 254
 
