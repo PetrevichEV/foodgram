@@ -1,12 +1,11 @@
 from django.contrib import admin
 
 from .models import (
-    Favourites,
+    Favourite,
     Ingredient,
     IngredientForRecipe,
     Recipe,
     ShoppingList,
-    ShortLink,
     Tag,
 )
 
@@ -31,7 +30,7 @@ class RecipeAdmin(admin.ModelAdmin):
 
     def added_favorites(self, obj):
         """Подсчет общего числа добавлений рецепта в избранное."""
-        return Favourites.objects.filter(recipe=obj).count()
+        return Favourite.objects.filter(recipe=obj).count()
 
     added_favorites.short_description = 'Всего в избранном'
 
@@ -40,7 +39,7 @@ class RecipeAdmin(admin.ModelAdmin):
         return ', '.join([tags.name for tags in obj.tags.all()])
 
 
-@admin.register(Favourites)
+@admin.register(Favourite)
 class FavouritesAdmin(admin.ModelAdmin):
     list_display = ('id',)
 
@@ -53,8 +52,3 @@ class ShoppingListAdmin(admin.ModelAdmin):
 @admin.register(IngredientForRecipe)
 class IngredientForRecipeAdmin(admin.ModelAdmin):
     list_display = ('id', 'ingredient', 'amount')
-
-
-@admin.register(ShortLink)
-class ShortLinkAdmin(admin.ModelAdmin):
-    list_display = ('id', 'short_id', 'recipe')

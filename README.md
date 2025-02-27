@@ -1,6 +1,11 @@
 #  Проект Foodgram
 
-Ознакомится с проектом можно здесь:  [Foodrgam](https://foodgrampetrevich.hopto.org, 89.169.163.125)  
+Ознакомится с проектом можно здесь:  [Foodrgam](https://foodgrampetrevich.hopto.org, 89.169.163.125) 
+
+## Используемые технологии
+
+<img src="https://img.shields.io/badge/Python-FFFFFF?style=for-the-badge&logo=python&logoColor=3776AB"/><img src="https://img.shields.io/badge/django-FFFFFF?style=for-the-badge&logo=django&logoColor=082E08"/><img src="https://img.shields.io/badge/Django REST Framework-FFFFFF?style=for-the-badge&logo=&logoColor=361508"/><img src="https://img.shields.io/badge/PostgreSQL-FFFFFF?style=for-the-badge&logo=PostgreSQL&logoColor=4169E1"/><img src="https://img.shields.io/badge/Nginx-FFFFFF?style=for-the-badge&logo=Nginx&logoColor=009639"/><img src="https://img.shields.io/badge/GitHub Actions-FFFFFF?style=for-the-badge&logo=GitHub Actions&logoColor=2088FF"/><img src="https://img.shields.io/badge/Docker-FFFFFF?style=for-the-badge&logo=Docker&logoColor=2496ED"/>
+
 
 ## О проекте
 

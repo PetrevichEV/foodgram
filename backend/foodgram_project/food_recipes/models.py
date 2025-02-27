@@ -88,6 +88,13 @@ class Recipe(models.Model):
         upload_to='food_recipes/',
         verbose_name='Изображение'
     )
+    short_id = models.CharField(
+        max_length=settings.SHORT_ID_MAX_LENGTH,
+        unique=True,
+        db_index=True,
+        blank=True,
+        null=True
+    )
 
     class Meta:
         verbose_name = 'Рецепт'
@@ -101,12 +108,9 @@ class Recipe(models.Model):
 
     def save(self, *args, **kwargs):
         """Переопределение метода save для создания короткой ссылки."""
-        is_new = not self.pk
+        if not self.short_id:
+            self.short_id = hashids.encode(self.pk)
         super().save(*args, **kwargs)
-        if is_new:
-            from .models import ShortLink
-            short_id = hashids.encode(self.pk)
-            ShortLink.objects.create(short_id=short_id, recipe=self)
 
 
 class IngredientForRecipe(models.Model):
@@ -138,7 +142,7 @@ class IngredientForRecipe(models.Model):
         return f'{self.recipe},{self.ingredient}'
 
 
-class Favourites(models.Model):
+class Favourite(models.Model):
     """Модель избранного."""
     user = models.ForeignKey(
         User,
@@ -176,26 +180,3 @@ class ShoppingList(models.Model):
 
     def __str__(self):
         return f'{self.user},{self.recipe}'
-
-
-class ShortLink(models.Model):
-    """Модель короткой ссылки."""
-    short_id = models.CharField(
-        max_length=settings.SHORT_ID_MAX_LENGTH,
-        unique=True,
-        db_index=True
-    )
-    recipe = models.ForeignKey(
-        Recipe,
-        on_delete=models.CASCADE
-    )
-    created_at = models.DateTimeField(
-        auto_now_add=True
-    )
-
-    class Meta:
-        verbose_name = 'Короткая ссылка'
-        verbose_name_plural = 'Короткие ссылки'
-
-    def __str__(self):
-        return f"{self.short_id} -> {self.recipe.pk}"

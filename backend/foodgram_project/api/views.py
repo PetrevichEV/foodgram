@@ -12,11 +12,10 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from food_recipes.models import (
-    Favourites,
+    Favourite,
     Ingredient,
     Recipe,
     ShoppingList,
-    ShortLink,
     Tag,
 )
 from users.models import Subscription
@@ -183,16 +182,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         if request.method == 'POST':
             recipe = get_object_or_404(Recipe, pk=pk)
-            if Favourites.objects.filter(user=user, recipe=recipe).exists():
+            if Favourite.objects.filter(user=user, recipe=recipe).exists():
                 return Response({'detail': 'Рецепт уже в избранном!'},
                                 status=status.HTTP_400_BAD_REQUEST)
 
-            favorite = Favourites.objects.create(user=user, recipe=recipe)
+            favorite = Favourite.objects.create(user=user, recipe=recipe)
             serializer = FavoriteSerializer(favorite)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         elif request.method == 'DELETE':
-            deleted_count, _ = Favourites.objects.filter(
+            deleted_count, _ = Favourite.objects.filter(
                 user=user, recipe=self.get_object()
             ).delete()
 
@@ -287,17 +286,17 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def get_link(self, request, pk=None):
         """Отображение короткой ссылки на рецепт."""
         recipe = self.get_object()
-        try:
-            short_link_obj = ShortLink.objects.get(recipe=recipe)
-        except ShortLink.DoesNotExist:
+        if not recipe.short_id:
             recipe.save()
-            short_link_obj = ShortLink.objects.get(recipe=recipe)
-        short_id = short_link_obj.short_id
-        short_link = f'{settings.BASE_URL}/api/s/{short_id}'
-        return Response({'short-link': short_link})
+        if recipe.short_id:
+            short_link = f'{settings.BASE_URL}/api/s/{recipe.short_id}'
+            return Response({'short-link': short_link})
 
 
 def redirect_to_recipe(request, short_id):
     """Переправление на страницу рецепта по короткой ссылке."""
-    short_link_obj = get_object_or_404(ShortLink, short_id=short_id)
-    return redirect(short_link_obj.recipe.get_absolute_url())
+    try:
+        recipe = Recipe.objects.get(short_id=short_id)
+        return redirect(recipe.get_absolute_url())
+    except Recipe.DoesNotExist:
+        return HttpResponseNotFound('Рецепт не найден!')
