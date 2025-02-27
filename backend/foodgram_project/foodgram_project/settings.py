@@ -9,7 +9,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('SECRET_KEY', default='SECRET_KEY')
 
-
 DEBUG = False
 
 ALLOWED_HOSTS = ['127.0.0.1'] if DEBUG else [
@@ -174,7 +173,7 @@ EMAIL_MAX_LENGTH = 254
 
 FIELD_MAX_LENGTH = 150
 
-SHORT_ID_MAX_LENGTH = 8
+SHORT_ID_MAX_LENGTH = 10
 
 NAME_RECIPE_MAX_LENGTH = 256
 

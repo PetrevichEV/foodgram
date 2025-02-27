@@ -1,15 +1,14 @@
+import random
+import string
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
-from hashids import Hashids
 
 from .validators import validate_slug
 
 User = get_user_model()
-
-hashids = Hashids(salt=settings.HASHIDS_SALT, min_length=3)
 
 
 class Tag(models.Model):
@@ -91,9 +90,7 @@ class Recipe(models.Model):
     short_id = models.CharField(
         max_length=settings.SHORT_ID_MAX_LENGTH,
         unique=True,
-        db_index=True,
         blank=True,
-        null=True
     )
 
     class Meta:
@@ -103,14 +100,20 @@ class Recipe(models.Model):
     def __str__(self):
         return self.name
 
-    def get_absolute_url(self):
-        return f'/recipes/{self.pk}'
+    def generate_short_id(self):
+        characters = string.ascii_letters + string.digits
+        return ''.join(random.choices(characters,
+                                      k=settings.SHORT_ID_MAX_LENGTH))
 
     def save(self, *args, **kwargs):
         """Переопределение метода save для создания короткой ссылки."""
-        if not self.short_id:
-            self.short_id = hashids.encode(self.pk)
-        super().save(*args, **kwargs)
+        is_new = not self.pk
+        if is_new:
+            self.short_id = self.generate_short_id()
+            super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        return f'/recipes/{self.pk}'
 
 
 class IngredientForRecipe(models.Model):
