@@ -287,10 +287,17 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def get_link(self, request, pk=None):
         """Отображение короткой ссылки на рецепт."""
         recipe = self.get_object()
-        short_link_obj = ShortLink.objects.get(recipe=recipe)
-        short_id = short_link_obj.short_id
-        short_link = f'{settings.BASE_URL}/api/s/{short_id}'
-        return Response({'short-link': short_link})
+        try:
+            short_link_obj = ShortLink.objects.get(recipe=recipe)
+            short_id = short_link_obj.short_id
+            short_link = f'{settings.BASE_URL}/api/s/{short_id}'
+            return Response({'short-link': short_link})
+
+        except ShortLink.DoesNotExist:
+            return Response(
+                {'detail': 'Ссылка не найдена!'},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
 
 def redirect_to_recipe(request, short_id):
