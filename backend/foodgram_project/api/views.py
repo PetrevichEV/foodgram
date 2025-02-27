@@ -6,6 +6,7 @@ from django.http import HttpResponse, HttpResponseNotFound
 from django.shortcuts import get_object_or_404, redirect
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
+from hashids import Hashids
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 
@@ -36,6 +37,7 @@ from .serializers import (
     UserSubscriptionSerializer,
 )
 
+hashids = Hashids(salt=settings.HASHIDS_SALT, min_length=3)
 
 User = get_user_model()
 
@@ -285,7 +287,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         url_path='get-link'
     )
     def get_link(self, request, pk=None):
-        """Получение короткой ссылки на рецепт."""
+        """Создание короткой ссылки на рецепт."""
         recipe = self.get_object()
         try:
             short_link_obj = ShortLink.objects.get(recipe=recipe)
@@ -294,10 +296,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return Response({'short-link': short_link})
 
         except ShortLink.DoesNotExist:
-            return Response(
-                {'detail': 'Ссылка не найдена!'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+            short_id = hashids.encode(recipe.pk)
+            short_link_obj = ShortLink.objects.create(
+                short_id=short_id, recipe=recipe)
+            short_link = f'{settings.BASE_URL}/api/s/{short_id}'
+            return Response({'short-link': short_link})
 
 
 def redirect_to_recipe(request, short_id):
