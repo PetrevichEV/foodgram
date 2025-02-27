@@ -87,15 +87,13 @@ class UserSubscriptionSerializer(UserSerializer):
         """Получает список рецептов автора с учетом лимита."""
         request = self.context.get('request')
         queryset = Recipe.objects.filter(author=obj)
-        recipes_limit = request.query_params.get(
-            'recipes_limit'
-        )
+        recipes_limit = request.query_params.get('recipes_limit')
 
-        try:
-            if recipes_limit and int(recipes_limit) > 0:
-                queryset = queryset[:int(recipes_limit)]
-        except (ValueError, TypeError):
-            pass
+        if recipes_limit is not None:
+            if isinstance(recipes_limit, str) and recipes_limit.isdigit():
+                recipes_limit = int(recipes_limit)
+                if recipes_limit > 0:
+                    queryset = queryset[:recipes_limit]
 
         return SimpleRecipeSerializer(
             queryset, many=True, context=self.context

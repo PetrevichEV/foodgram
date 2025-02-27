@@ -1,3 +1,4 @@
+import io
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db.models import Count, Sum
@@ -163,7 +164,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     """Вьюсет рецептов."""
 
     queryset = Recipe.objects.prefetch_related(
-        'recipe_ingredients__ingredient', 'tags'
+        'recipe_ingredients__ingredient', 'tags', 'author'
     )
     serializer_class = RecipeСreateUpdateSerializer
     permission_classes = (IsOwnerOrReadOnly,)
@@ -241,6 +242,25 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
+    def _create_shopping_list_content(self, user):
+        """Создает контент для списка покупок в виде BytesIO (txt)."""
+        buffer = io.BytesIO()
+        ingredients = ShoppingList.objects.filter(user=user).values(
+            'recipe__ingredients__name',
+            'recipe__ingredients__measurement_unit'
+        ).annotate(total_amount=Sum('recipe__recipe_ingredients__amount'))
+
+        content = "\n".join([
+            f"{item['recipe__ingredients__name']} - {item['total_amount']} "
+            f"{item['recipe__ingredients__measurement_unit']}"
+            for item in ingredients
+        ])
+
+        buffer.write(content.encode('utf-8'))
+
+        buffer.seek(0)
+        return buffer
+
     @action(
         detail=False,
         methods=('GET',),
@@ -251,21 +271,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def download_shopping_cart(self, request):
         """Скачивание списока покупок для текущего пользователя."""
         user = request.user
-
-        ingredients = ShoppingList.objects.filter(user=user).values(
-            'recipe__ingredients__name',
-            'recipe__ingredients__measurement_unit'
-        ).annotate(total_amount=Sum('recipe__recipe_ingredients__amount'))
+        buffer = self._create_shopping_list_content(user)
 
         filename = f"{user.username}_shopping_list.txt"
-        content = "\n".join([
-            f"{item['recipe__ingredients__name']} - {item['total_amount']} "
-            f"{item['recipe__ingredients__measurement_unit']}"
-            for item in ingredients
-        ])
-
         response = HttpResponse(
-            content, content_type='text/plain; charset=utf-8')
+            buffer.getvalue(),
+            content_type='text/plain; charset=utf-8'
+        )
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response
 
