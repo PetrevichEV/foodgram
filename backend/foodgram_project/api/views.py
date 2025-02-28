@@ -3,7 +3,7 @@ import io
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db.models import Count, Sum
-from django.http import HttpResponse, HttpResponseNotFound
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
@@ -294,8 +294,5 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
 def redirect_to_recipe(request, short_id):
     """Переправление на страницу рецепта по короткой ссылке."""
-    try:
-        recipe = Recipe.objects.get(short_id=short_id)
-        return redirect(recipe.get_absolute_url())
-    except Recipe.DoesNotExist:
-        return HttpResponseNotFound('Рецепт не найден!')
+    recipe = get_object_or_404(Recipe, short_id=short_id)
+    return redirect(recipe.get_absolute_url())
