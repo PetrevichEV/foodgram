@@ -176,7 +176,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         url_name='favorite',
         permission_classes=[permissions.IsAuthenticated])
     def favorite(self, request, pk=None):
-        """Добавление/удаление рецепта из избранного."""
+        """Добавление и удаление рецепта из избранного."""
         user = request.user
 
         if request.method == 'POST':
