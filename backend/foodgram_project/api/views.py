@@ -1,4 +1,5 @@
 import io
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db.models import Count, Sum
@@ -8,7 +9,6 @@ from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
-
 from rest_framework.response import Response
 
 from food_recipes.models import (
@@ -16,7 +16,7 @@ from food_recipes.models import (
     Ingredient,
     Recipe,
     ShoppingList,
-    Tag,
+    Tag
 )
 from users.models import Subscription
 
@@ -34,7 +34,6 @@ from .serializers import (
     UserSerializer,
     UserSubscriptionSerializer,
 )
-
 
 User = get_user_model()
 

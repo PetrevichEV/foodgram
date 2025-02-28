@@ -13,6 +13,7 @@ from food_recipes.models import (
     Tag,
 )
 from users.models import Subscription
+
 from .mixins import UserRecipeRelationMixin
 
 User = get_user_model()
