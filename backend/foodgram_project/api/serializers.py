@@ -20,7 +20,7 @@ User = get_user_model()
 
 
 class UserSerializer(DjoserSerializer):
-    """Сериализатор для модели пользователя."""
+    """Информации о пользователе."""
 
     is_subscribed = serializers.SerializerMethodField()
 
@@ -124,8 +124,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         return data
 
     def to_representation(self, instance):
-        """Возвращаем информацию о пользователе,
-        на которого была создана подписка."""
+        """Возвращаем информацию на кого подписались."""
         author = instance.author
         serializer = UserSubscriptionSerializer(author, context=self.context)
         return serializer.data
@@ -235,11 +234,11 @@ class RecipeСreateUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Ингредиенты не уникальны!')
         return data
 
-    def validate_image(self, img):
+    def validate_image(self, image):
         """Проверяет наличие картинки рецепта."""
-        if not img:
+        if not image:
             raise serializers.ValidationError('Нужно изображение!')
-        return img
+        return image
 
     @staticmethod
     def add_ingredients(recipe, ingredients):
@@ -284,7 +283,7 @@ class RecipeСreateUpdateSerializer(serializers.ModelSerializer):
 
 
 class FavoriteSerializer(UserRecipeRelationMixin,
-                         serializers.ModelSerializer,):
+                         serializers.ModelSerializer):
     """Сериализатор для добавления рецептов в избранное."""
 
     class Meta(UserRecipeRelationMixin.Meta):

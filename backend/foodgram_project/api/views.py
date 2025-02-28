@@ -39,7 +39,7 @@ User = get_user_model()
 
 
 class UserViewSet(DjoserUserViewSet):
-    """Вьюсет пользователя."""
+    """Отображение информации о пользователе."""
 
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -137,7 +137,7 @@ class UserViewSet(DjoserUserViewSet):
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
-    """Вьюсет тегов."""
+    """Отображение тегов."""
 
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
@@ -146,7 +146,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
-    """Вьюсет ингридиентов."""
+    """Отображение ингридиентов."""
 
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
@@ -157,7 +157,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    """Вьюсет рецептов."""
+    """Отображение рецептов."""
 
     queryset = Recipe.objects.prefetch_related(
         'recipe_ingredients__ingredient', 'tags', 'author'
