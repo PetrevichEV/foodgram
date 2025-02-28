@@ -11,10 +11,10 @@ SECRET_KEY = os.getenv('SECRET_KEY', default='SECRET_KEY')
 
 DEBUG = os.getenv('DEBUG', False) == 'True'
 
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
-ALLOWED_HOSTS = ['127.0.0.1'] if DEBUG else [
-    'localhost', '89.169.163.125', 'foodgrampetrevich.hopto.org'
-]
+if DEBUG:
+    ALLOWED_HOSTS = ['*']
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
