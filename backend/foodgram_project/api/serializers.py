@@ -13,6 +13,7 @@ from food_recipes.models import (
     Tag,
 )
 from users.models import Subscription
+from .mixins import UserRecipeRelationMixin
 
 User = get_user_model()
 
@@ -279,26 +280,6 @@ class RecipeСreateUpdateSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         """Преобразовывает объект рецепта в представление."""
         return RecipeSerializer(instance, context=self.context).data
-
-
-class UserRecipeRelationMixin:
-    """Валидация связи User-Recipe и сериализация в кратком виде."""
-
-    def validate(self, data):
-        user = data['user']
-        recipe = data['recipe']
-        if self.Meta.model.objects.filter(user=user, recipe=recipe).exists():
-            raise serializers.ValidationError('Рецепт уже добавлен!')
-        return data
-
-    def to_representation(self, instance):
-        """Возвращаем краткую информацию о рецептах."""
-        recipe = instance.recipe
-        serializer = SimpleRecipeSerializer(recipe, context=self.context)
-        return serializer.data
-
-    class Meta:
-        fields = ('user', 'recipe')
 
 
 class FavoriteSerializer(UserRecipeRelationMixin,
