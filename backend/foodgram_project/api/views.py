@@ -65,7 +65,7 @@ class UserViewSet(DjoserUserViewSet):
         permission_classes=[permissions.IsAuthenticated],
     )
     def avatar(self, request):
-        """Добавление/обновление и удаление аватара."""
+        """Добавление и обновление и удаление аватара."""
         if request.method == 'PUT':
             serializer = AvatarSerializer(
                 request.user,
