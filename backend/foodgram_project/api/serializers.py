@@ -81,10 +81,6 @@ class UserSubscriptionSerializer(UserSerializer):
     class Meta(UserSerializer.Meta):
         fields = UserSerializer.Meta.fields + ('recipes_count', 'recipes')
 
-    def get_recipes_count(self, obj):
-        """Подсчитывает общего количества рецептов пользователя."""
-        return obj.recipes.count()
-
     def get_recipes(self, obj):
         """Получает список рецептов автора с учетом лимита."""
         request = self.context.get('request')
@@ -107,6 +103,13 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscription
         fields = ('user', 'author')
+        validators = [
+            serializers.UniqueTogetherValidator(
+                queryset=Subscription.objects.all(),
+                fields=('user', 'author'),
+                message="Вы уже подписаны на этого пользователя!"
+            )
+        ]
 
     def validate(self, data):
         user, author = data['user'], data['author']
@@ -114,11 +117,6 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         if user == author:
             raise serializers.ValidationError(
                 'Вы не можете подписаться на себя!'
-            )
-
-        if Subscription.objects.filter(user=user, author=author).exists():
-            raise serializers.ValidationError(
-                'Вы уже подписаны на данного пользователя!'
             )
 
         return data

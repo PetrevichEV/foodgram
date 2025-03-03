@@ -3,6 +3,8 @@ from rest_framework import serializers
 
 class UserRecipeRelationMixin:
     """Валидация связи User-Recipe и сериализация в кратком виде."""
+    class Meta:
+        fields = ('user', 'recipe')
 
     def validate(self, data):
         user = data['user']
@@ -17,6 +19,3 @@ class UserRecipeRelationMixin:
         from .serializers import SimpleRecipeSerializer
         serializer = SimpleRecipeSerializer(recipe, context=self.context)
         return serializer.data
-
-    class Meta:
-        fields = ('user', 'recipe')
