@@ -12,7 +12,8 @@ User = get_user_model()
 
 
 class Tag(models.Model):
-    """Модель тегов."""
+    """Определение модели тегов."""
+
     name = models.CharField(
         max_length=settings.TAG_MAX_LENGTH,
         verbose_name='Название',
@@ -33,7 +34,8 @@ class Tag(models.Model):
 
 
 class Ingredient(models.Model):
-    """Модель ингридиентов."""
+    """Определение модели ингридиентов."""
+
     name = models.CharField(
         max_length=settings.NAME_INGREDIENT_MAX_LENGTH,
         verbose_name='Название'
@@ -53,7 +55,8 @@ class Ingredient(models.Model):
 
 
 class Recipe(models.Model):
-    """Модель рецептов."""
+    """Определение модели рецептов."""
+
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -101,7 +104,7 @@ class Recipe(models.Model):
         return self.name
 
     def generate_short_id(self):
-        characters = string.ascii_letters + string.digits
+        characters = f'{string.ascii_letters}{string.digits}'
         return ''.join(random.choices(characters,
                                       k=settings.SHORT_ID_MAX_LENGTH))
 
@@ -117,7 +120,8 @@ class Recipe(models.Model):
 
 
 class IngredientForRecipe(models.Model):
-    """Модель ингридиентов для рецептов."""
+    """Определение промежуточной модели ингридиентов для рецептов."""
+
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
@@ -146,7 +150,8 @@ class IngredientForRecipe(models.Model):
 
 
 class Favourite(models.Model):
-    """Модель избранного."""
+    """Определение модели избранного."""
+
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE
@@ -166,7 +171,8 @@ class Favourite(models.Model):
 
 
 class ShoppingList(models.Model):
-    """Модель списка покупок."""
+    """Определение модели списка покупок."""
+
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE

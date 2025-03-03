@@ -28,6 +28,6 @@ class Command(BaseCommand):
                     except IntegrityError:
                         pass
                 self.stdout.write(self.style.SUCCESS(
-                    "Файл загружен успешно"))
+                    'Файл загружен успешно'))
         except FileNotFoundError:
-            raise CommandError("Файл не найден")
+            raise CommandError('Файл не найден')

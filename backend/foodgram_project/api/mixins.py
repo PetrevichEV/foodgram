@@ -3,6 +3,7 @@ from rest_framework import serializers
 
 class UserRecipeRelationMixin:
     """Валидация связи User-Recipe и сериализация в кратком виде."""
+
     class Meta:
         fields = ('user', 'recipe')
 

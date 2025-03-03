@@ -5,7 +5,7 @@ from django.db import models
 
 
 class User(AbstractUser):
-    """Настройка расширенной модели пользователя."""
+    """Определение расширенной модели пользователя."""
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ('username', 'first_name',
@@ -32,7 +32,6 @@ class User(AbstractUser):
     )
     avatar = models.ImageField(
         verbose_name='Аватар',
-        null=True,
         default=None,
         blank=True,
         upload_to='avatars'
@@ -48,7 +47,7 @@ class User(AbstractUser):
 
 
 class Subscription(models.Model):
-    """Настройка модели подписок."""
+    """Определение модели подписок."""
 
     user = models.ForeignKey(
         User,

@@ -16,8 +16,7 @@ from food_recipes.models import (
     Ingredient,
     Recipe,
     ShoppingList,
-    Tag
-)
+    Tag)
 from users.models import Subscription
 
 from .filters import IngredientFilter, RecipeFilter
@@ -166,6 +165,34 @@ class RecipeViewSet(viewsets.ModelViewSet):
     pagination_class = PagePaginator
     http_method_names = ('get', 'post', 'patch', 'delete')
 
+    def add_delete_recipe(self, request, model=None,
+                          serializer_class=None, pk=None):
+        """Механика добавления/удаления рецепта из избранного/корзины."""
+
+        user = request.user
+
+        if request.method == 'POST':
+            recipe = get_object_or_404(Recipe, pk=pk)
+            data = {'user': user.pk, 'recipe': recipe.pk}
+            serializer = serializer_class(
+                data=data, context=self.get_serializer_context())
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        elif request.method == 'DELETE':
+            deleted_count, _ = model.objects.filter(
+                user=user, recipe=self.get_object()
+            ).delete()
+
+            if deleted_count == 0:
+                return Response(
+                    {'detail': 'Рецепт не найден!'},
+                    status=status.HTTP_400_BAD_REQUEST)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
     @action(
         detail=True,
         methods=('POST', 'DELETE'),
@@ -173,30 +200,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
         url_name='favorite',
         permission_classes=[permissions.IsAuthenticated])
     def favorite(self, request, pk=None):
-        """Добавление и удаление рецепта из избранного."""
-        user = request.user
-
-        if request.method == 'POST':
-            recipe = get_object_or_404(Recipe, pk=pk)
-            data = {'user': user.pk, 'recipe': recipe.pk}
-            serializer = FavoriteSerializer(
-                data=data, context=self.get_serializer_context())
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-        elif request.method == 'DELETE':
-            deleted_count, _ = Favourite.objects.filter(
-                user=user, recipe=self.get_object()
-            ).delete()
-
-            if deleted_count == 0:
-                return Response(
-                    {'detail': 'Рецепт не найден в избранном!'},
-                    status=status.HTTP_400_BAD_REQUEST)
-            return Response(status=status.HTTP_204_NO_CONTENT)
-
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        """Вызов функуции по добавлению/удалению рецепта из избранного."""
+        return self.add_delete_recipe(
+            request, Favourite, FavoriteSerializer, pk
+        )
 
     @action(
         detail=True,
@@ -206,30 +213,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
         permission_classes=[permissions.IsAuthenticated]
     )
     def shopping_cart(self, request, pk=None):
-        """Добавление/удаление рецепта из корзины покупок."""
-        user = request.user
-
-        if request.method == 'POST':
-            recipe = get_object_or_404(Recipe, pk=pk)
-            data = {'user': user.pk, 'recipe': recipe.pk}
-            serializer = ShoppingListSerializer(
-                data=data, context=self.get_serializer_context())
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-        elif request.method == 'DELETE':
-            deleted_count, _ = ShoppingList.objects.filter(
-                user=user, recipe=self.get_object()
-            ).delete()
-
-            if deleted_count == 0:
-                return Response(
-                    {'detail': 'Рецепт не найден в корзине!'},
-                    status=status.HTTP_400_BAD_REQUEST)
-            return Response(status=status.HTTP_204_NO_CONTENT)
-
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        """Вызов функции по добавлению/удалению рецепта из корзины покупок."""
+        return self.add_delete_recipe(
+            request, ShoppingList, ShoppingListSerializer, pk
+        )
 
     def _create_shopping_list_content(self, user):
         """Создает списк покупок."""

@@ -20,7 +20,7 @@ User = get_user_model()
 
 
 class UserSerializer(DjoserSerializer):
-    """Информации о пользователе."""
+    """Сериализует пользователя, добавляет статус подписки.."""
 
     is_subscribed = serializers.SerializerMethodField()
 
@@ -40,7 +40,8 @@ class UserSerializer(DjoserSerializer):
 
 
 class UserCreateSerializer(UserCreateSerializer):
-    """Сериализатор для создания модели пользователя."""
+    """Создает пользователей, исключает id для записи."""
+
     class Meta:
         model = User
         fields = ('email', 'id', 'username',
@@ -49,7 +50,7 @@ class UserCreateSerializer(UserCreateSerializer):
 
 
 class AvatarSerializer(serializers.ModelSerializer):
-    """Сериализатор для отображения аватара."""
+    """Сериализует аватар пользователя, требует аватар."""
 
     avatar = Base64ImageField(allow_null=True)
 
@@ -64,7 +65,7 @@ class AvatarSerializer(serializers.ModelSerializer):
 
 
 class SimpleRecipeSerializer(serializers.ModelSerializer):
-    """Короткое отображение информации о рецептах."""
+    """Коротко отображает информацию о рецептах."""
 
     class Meta:
         model = Recipe
@@ -73,7 +74,7 @@ class SimpleRecipeSerializer(serializers.ModelSerializer):
 
 
 class UserSubscriptionSerializer(UserSerializer):
-    """Сериализатор для отображение подписанного пользователя."""
+    """Отображает пользователя, рецепты, лимит."""
 
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.IntegerField(default=0)
@@ -99,7 +100,8 @@ class UserSubscriptionSerializer(UserSerializer):
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
-    """Сериализатор для создания подписки."""
+    """Отображает подписки."""
+
     class Meta:
         model = Subscription
         fields = ('user', 'author')
@@ -129,7 +131,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
 
 
 class TagSerializer(serializers.ModelSerializer):
-    """Сериализатор для тегов."""
+    """Отображает теги."""
 
     class Meta:
         model = Tag
@@ -137,7 +139,7 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class IngredientSerializer(serializers.ModelSerializer):
-    """Сериализатор для ингредиентов."""
+    """Отображает ингридиенты."""
 
     class Meta:
         model = Ingredient
@@ -145,7 +147,7 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class IngredientForRecipeSerializer(serializers.ModelSerializer):
-    """Сериализатор для отображения ингредиентов в рецепте."""
+    """Отображает ингредиенты в рецепте."""
 
     id = serializers.IntegerField(source='ingredient.id')
     name = serializers.CharField(source='ingredient.name')
@@ -159,7 +161,7 @@ class IngredientForRecipeSerializer(serializers.ModelSerializer):
 
 
 class RecipeSerializer(serializers.ModelSerializer):
-    """Сериализатор для отображения рецептов."""
+    """Отображает полную информацию о рецептах."""
 
     author = UserSerializer(read_only=True)
     tags = TagSerializer(many=True, read_only=True)
@@ -190,7 +192,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 
 class IngredientForRecipeCreateSerializer(serializers.ModelSerializer):
-    """Добавление ингредиентов при создании, обновлении рецепта."""
+    """Добавляет ингредиенты при создании, обновлении рецепта."""
 
     id = serializers.PrimaryKeyRelatedField(
         queryset=Ingredient.objects.all(), source='ingredient'
@@ -202,7 +204,7 @@ class IngredientForRecipeCreateSerializer(serializers.ModelSerializer):
 
 
 class RecipeСreateUpdateSerializer(serializers.ModelSerializer):
-    """Сериализатор для создания, обновления рецептов."""
+    """Создает и обновляет рецепты."""
 
     tags = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Tag.objects.all(), allow_empty=False
@@ -282,7 +284,7 @@ class RecipeСreateUpdateSerializer(serializers.ModelSerializer):
 
 class FavoriteSerializer(UserRecipeRelationMixin,
                          serializers.ModelSerializer):
-    """Сериализатор для добавления рецептов в избранное."""
+    """Добавляет рецепты в избранное."""
 
     class Meta(UserRecipeRelationMixin.Meta):
         model = Favourite
@@ -290,7 +292,7 @@ class FavoriteSerializer(UserRecipeRelationMixin,
 
 class ShoppingListSerializer(UserRecipeRelationMixin,
                              serializers.ModelSerializer):
-    """Сериализатор для добавления рецептов в корзину покупок."""
+    """Добавляет рецепты в корзину покупок."""
 
     class Meta(UserRecipeRelationMixin.Meta):
         model = ShoppingList
