@@ -110,10 +110,9 @@ class Recipe(models.Model):
 
     def save(self, *args, **kwargs):
         """Переопределение метода save для создания короткой ссылки."""
-        is_new = not self.pk
-        if is_new:
+        if not self.short_id:
             self.short_id = self.generate_short_id()
-            super().save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     def get_absolute_url(self):
         return f'/recipes/{self.pk}'
