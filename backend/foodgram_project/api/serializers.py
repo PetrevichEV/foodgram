@@ -272,17 +272,10 @@ class RecipeСreateUpdateSerializer(serializers.ModelSerializer):
         """Обновляет рецепт."""
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
-        instance.name = validated_data.get('name', instance.name)
-        instance.text = validated_data.get('text', instance.text)
-        instance.cooking_time = validated_data.get(
-            'cooking_time', instance.cooking_time
-        )
-        instance.image = validated_data.get('image', instance.image)
-        instance.tags.set(tags)
         instance.ingredients.clear()
+        instance.tags.set(tags)
         self.add_ingredients(instance, ingredients)
-        instance.save()
-        return instance
+        return super().update(instance, validated_data)
 
     def to_representation(self, instance):
         """Преобразовывает объект рецепта в представление."""
