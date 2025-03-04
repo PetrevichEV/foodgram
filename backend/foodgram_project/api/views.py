@@ -27,6 +27,7 @@ from .serializers import (
     FavoriteSerializer,
     IngredientSerializer,
     RecipeСreateUpdateSerializer,
+    RecipeSerializer,
     ShoppingListSerializer,
     SubscriptionSerializer,
     TagSerializer,
@@ -158,12 +159,17 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.select_related('author').prefetch_related(
         'recipe_ingredients__ingredient', 'tags'
     )
-    serializer_class = RecipeСreateUpdateSerializer
+    # serializer_class = RecipeСreateUpdateSerializer
     permission_classes = (IsOwnerOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
     pagination_class = PagePaginator
     http_method_names = ('get', 'post', 'patch', 'delete')
+
+    def get_serializer_class(self):
+        if self.action in ['list', 'retrieve']:
+            return RecipeSerializer
+        return RecipeСreateUpdateSerializer
 
     def add_delete_recipe(self, request, model=None,
                           serializer_class=None, pk=None):
