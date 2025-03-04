@@ -1,6 +1,7 @@
 #  Проект Foodgram
 
-Ознакомится с проектом можно здесь:  [Foodrgam](https://foodgrampetrevich.hopto.org, 89.169.163.125) 
+Ознакомится с проектом можно здесь:  https://foodgrampetrevich.hopto.org, 89.169.163.125 
+Данные для входа в админку: email: e@e.ee, пароль: admin 
 
 ## Используемые технологии
 
