@@ -108,12 +108,12 @@ class Recipe(models.Model):
         return ''.join(random.choices(characters,
                                       k=settings.SHORT_ID_MAX_LENGTH))
 
-    # def save(self, *args, **kwargs):
-    #     """Переопределение метода save для создания короткой ссылки."""
-    #     is_new = not self.pk
-    #     if is_new:
-    #         self.short_id = self.generate_short_id()
-    #         super().save(*args, **kwargs)
+    def save(self, *args, **kwargs):
+        """Переопределение метода save для создания короткой ссылки."""
+        is_new = not self.pk
+        if is_new:
+            self.short_id = self.generate_short_id()
+            super().save(*args, **kwargs)
 
     def get_absolute_url(self):
         return f'/recipes/{self.pk}'

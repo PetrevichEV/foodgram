@@ -155,7 +155,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     """Отображение рецептов."""
 
-    queryset = Recipe.objects.prefetch_related(
+    queryset = Recipe.objects.select_related('author').prefetch_related(
         'recipe_ingredients__ingredient', 'tags'
     )
     serializer_class = RecipeСreateUpdateSerializer
