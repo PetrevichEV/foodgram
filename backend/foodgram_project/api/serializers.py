@@ -241,7 +241,7 @@ class RecipeСreateUpdateSerializer(serializers.ModelSerializer):
         return image
 
     @staticmethod
-    def add_ingredients(recipe, ingredients):
+    def _add_ingredients(recipe, ingredients):
         """Добавляет ингредиенты в рецепт."""
         ingredient_for_recipes = [
             IngredientForRecipe(
@@ -265,19 +265,19 @@ class RecipeСreateUpdateSerializer(serializers.ModelSerializer):
             **validated_data
         )
         recipe.tags.set(tags)
-        self.add_ingredients(recipe, ingredients)
+        self._add_ingredients(recipe, ingredients)
         return recipe
 
-    def update(self, instance, validated_data):
-        """Обновляет рецепт."""
-        ingredients = validated_data.pop('ingredients')
-        tags = validated_data.pop('tags')
-        instance.ingredients.clear()
-        instance.tags.set(tags)
-        self.add_ingredients(instance, ingredients)
-        instance = super().update(instance, validated_data)
-        instance.save()
-        return instance
+    # def update(self, instance, validated_data):
+    #     """Обновляет рецепт."""
+    #     ingredients = validated_data.pop('ingredients')
+    #     tags = validated_data.pop('tags')
+    #     instance.ingredients.clear()
+    #     instance.tags.set(tags)
+    #     self._add_ingredients(instance, ingredients)
+    #     instance = super().update(instance, validated_data)
+    #     instance.save()
+    #     return instance
 
     def to_representation(self, instance):
         """Преобразовывает объект рецепта в представление."""
