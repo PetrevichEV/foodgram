@@ -164,6 +164,7 @@ class Favourite(models.Model):
 
     class Meta:
         verbose_name = 'Избранное'
+        verbose_name_plural = 'Избранное'
         ordering = ('user',)
 
     def __str__(self):
@@ -185,6 +186,7 @@ class ShoppingList(models.Model):
 
     class Meta:
         verbose_name = 'Список покупок'
+        verbose_name_plural = 'Списки покупок'
         ordering = ('user',)
 
     def __str__(self):

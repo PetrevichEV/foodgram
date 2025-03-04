@@ -240,7 +240,8 @@ class RecipeСreateUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Нужно изображение!')
         return image
 
-    def _add_ingredients(self, recipe, ingredients):
+    @staticmethod
+    def add_ingredients(recipe, ingredients):
         """Добавляет ингредиенты в рецепт."""
         ingredient_for_recipes = [
             IngredientForRecipe(
@@ -263,7 +264,8 @@ class RecipeСreateUpdateSerializer(serializers.ModelSerializer):
             author=current_user,
             **validated_data
         )
-        self._handle_tags_and_ingredients(recipe, tags, ingredients)
+        recipe.tags.set(tags)
+        self.add_ingredients(recipe, ingredients)
         return recipe
 
     def update(self, instance, validated_data):
@@ -271,14 +273,9 @@ class RecipeСreateUpdateSerializer(serializers.ModelSerializer):
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
         instance.ingredients.clear()
-        self._handle_tags_and_ingredients(instance, tags, ingredients)
-        instance = super().update(instance, validated_data)
-        return instance
-
-    def _handle_tags_and_ingredients(self, recipe, tags, ingredients):
-        """Обрабатывает добавление тегов и ингредиентов."""
-        recipe.tags.set(tags)
-        self._add_ingredients(recipe, ingredients)
+        instance.tags.set(tags)
+        self.add_ingredients(instance, ingredients)
+        return super().update(instance, validated_data)
 
     def to_representation(self, instance):
         """Преобразовывает объект рецепта в представление."""
