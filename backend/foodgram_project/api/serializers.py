@@ -275,7 +275,9 @@ class RecipeСreateUpdateSerializer(serializers.ModelSerializer):
         instance.ingredients.clear()
         instance.tags.set(tags)
         self.add_ingredients(instance, ingredients)
-        return super().update(instance, validated_data)
+        instance = super().update(instance, validated_data)
+        instance.save()
+        return instance
 
     def to_representation(self, instance):
         """Преобразовывает объект рецепта в представление."""
