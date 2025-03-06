@@ -65,20 +65,18 @@ class RecipeAdmin(admin.ModelAdmin):
 class FavouritesAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'recipe')
     list_display_links = ('user',)
-    search_fields = ('user',)
-    list_filter = ('recipe__name',)
+    list_filter = ('recipe__name', 'user__username')
 
 
 @admin.register(ShoppingList)
 class ShoppingListAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'recipe')
     list_display_links = ('user',)
-    search_fields = ('user',)
-    list_filter = ('recipe__name',)
+    list_filter = ('recipe__name', 'user__username')
 
 
 @admin.register(IngredientForRecipe)
 class IngredientForRecipeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'recipe', 'ingredient', 'amount', )
-    list_display_links = ('recipe',)
+    list_display = ('id', 'ingredient', 'recipe', 'amount', )
+    list_display_links = ('ingredient',)
     list_filter = ('recipe__name',)
