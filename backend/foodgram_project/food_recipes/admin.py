@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.db.models import Prefetch
 
 from .models import (
     Favourite,
@@ -13,20 +14,33 @@ from .models import (
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     list_display = ('id', 'name')
+    list_display_links = ('name',)
+    search_fields = ('name',)
 
 
 @admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
     list_display = ('id', 'name')
+    list_display_links = ('name',)
     search_fields = ('name',)
 
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'author', 'tags_list', 'added_favorites')
-    search_fields = ('name', 'author__username')
-    list_filter = ('tags',)
+    list_display = ('id', 'name', 'author', 'tags_list',
+                    'ingredients_list', 'added_favorites')
+    list_display_links = ('name',)
+    search_fields = ('name',)
+    list_filter = ('tags', 'author__username')
     readonly_fields = ('added_favorites',)
+
+    def get_queryset(self, request):
+        """Оптимизация запросов"""
+        queryset = super().get_queryset(request)
+        return queryset.select_related('author').prefetch_related(
+            'tags',
+            Prefetch('ingredients', queryset=Ingredient.objects.all()),
+        )
 
     def added_favorites(self, obj):
         """Подсчет общего числа добавлений рецепта в избранное."""
@@ -36,19 +50,35 @@ class RecipeAdmin(admin.ModelAdmin):
 
     @admin.display(description='Теги')
     def tags_list(self, obj):
+        """Вывод тегов"""
         return ', '.join([tags.name for tags in obj.tags.all()])
+
+    @admin.display(description='Ингредиенты')
+    def ingredients_list(self, recipe):
+        """Вывод ингредиентов."""
+        return ', '.join([
+            ingredient.name for ingredient in recipe.ingredients.all()
+        ])
 
 
 @admin.register(Favourite)
 class FavouritesAdmin(admin.ModelAdmin):
-    list_display = ('id',)
+    list_display = ('id', 'user', 'recipe')
+    list_display_links = ('user',)
+    search_fields = ('user',)
+    list_filter = ('recipe__name',)
 
 
 @admin.register(ShoppingList)
 class ShoppingListAdmin(admin.ModelAdmin):
-    list_display = ('id',)
+    list_display = ('id', 'user', 'recipe')
+    list_display_links = ('user',)
+    search_fields = ('user',)
+    list_filter = ('recipe__name',)
 
 
 @admin.register(IngredientForRecipe)
 class IngredientForRecipeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'ingredient', 'amount')
+    list_display = ('id', 'recipe', 'ingredient', 'amount', )
+    list_display_links = ('recipe',)
+    list_filter = ('recipe__name',)
